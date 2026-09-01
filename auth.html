@@ -23,8 +23,8 @@
         <!-- Sign In Form -->
         <form id="signinForm" onsubmit="handleSignin(event)" class="space-y-4">
             <div>
-                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
-                <input type="email" id="signinEmail" required placeholder="name@example.com" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email or Username</label>
+                <input type="text" id="signinEmail" required placeholder="admin or name@example.com" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
@@ -103,10 +103,11 @@
 
         async function handleSignin(e) {
             e.preventDefault();
-            const email = document.getElementById('signinEmail').value.trim();
+            const identifier = document.getElementById('signinEmail').value.trim();
             const password = document.getElementById('signinPassword').value.trim();
 
-            if (email.toLowerCase() === 'admin' && password === 'Admin@55') {
+            // Admin quick bypass login
+            if (identifier.toLowerCase() === 'admin' && password === 'Admin@55') {
                 localStorage.setItem('userName', 'Administrator');
                 localStorage.setItem('isAdmin', 'true');
                 window.location.href = 'admin.html';
@@ -117,7 +118,7 @@
                 const res = await fetch('/api/signin', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email: identifier, password })
                 });
                 const data = await res.json();
                 if (res.ok) {

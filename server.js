@@ -20,11 +20,12 @@ const initDb = async () => {
                 name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
-                phone VARCHAR(50),
-                dob VARCHAR(50),
                 is_admin BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+            ALTER TABLE users ADD COLUMN IF NOT EXISTS dob VARCHAR(50);
+
             CREATE TABLE IF NOT EXISTS shipments (
                 id SERIAL PRIMARY KEY,
                 tracking_number VARCHAR(50) UNIQUE NOT NULL,
@@ -50,7 +51,7 @@ const initDb = async () => {
                 value TEXT
             );
         `);
-        console.log('Database tables verified/initialized.');
+        console.log('Database tables and columns verified/initialized.');
     } catch (err) {
         console.error('Error initializing tables:', err);
     }
