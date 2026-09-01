@@ -1,0 +1,9 @@
+# Environment variables
+.env
+
+# Dependencies
+node_modules/
+
+# OS metadata files
+.DS_Store
+Thumbs.db

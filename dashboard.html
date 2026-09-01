@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalTransit - User Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800">
+
+    <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center">
+        <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold tracking-tight">Global<span class="text-blue-500">Transit</span></span>
+            <span id="userGreeting" class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded-full font-medium ml-2"></span>
+        </div>
+        <div class="flex items-center space-x-6 text-sm font-medium text-slate-300">
+            <a href="index.html" class="hover:text-white">Home</a>
+            <a href="admin.html" class="hover:text-white">Admin Portal</a>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300">Sign Out</button>
+        </div>
+    </header>
+
+    <main class="max-w-3xl mx-auto px-6 py-12">
+        <div class="mb-8">
+            <h1 class="text-2xl font-bold text-slate-900">Book Global Shipment</h1>
+            <p class="text-slate-500 text-sm mt-1">Initiate a parcel delivery order. Automated email & SMS alerts will be triggered instantly.</p>
+        </div>
+
+        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+            <form id="shipmentForm" class="space-y-5">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Sender Name</label>
+                    <input type="text" id="senderName" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Recipient Name</label>
+                        <input type="text" id="recipientName" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Recipient Phone (with country code)</label>
+                        <input type="text" id="recipientPhone" required placeholder="+2348012345678" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Recipient Email</label>
+                    <input type="email" id="recipientEmail" required placeholder="client@example.com" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Destination Address / Country</label>
+                    <input type="text" id="destination" required placeholder="e.g. London, United Kingdom" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-4">Confirm & Book Shipment</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        const name = localStorage.getItem('userName');
+        if (!name) {
+            window.location.href = 'auth.html';
+        } else {
+            document.getElementById('userGreeting').innerText = `Welcome, ${name}`;
+            document.getElementById('senderName').value = name;
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'auth.html';
+        }
+
+        document.getElementById('shipmentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const senderName = document.getElementById('senderName').value;
+            const recipientName = document.getElementById('recipientName').value;
+            const recipientPhone = document.getElementById('recipientPhone').value;
+            const recipientEmail = document.getElementById('recipientEmail').value;
+            const destination = document.getElementById('destination').value;
+
+            try {
+                const res = await fetch('http://localhost:3000/api/shipments', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ senderName, recipientName, recipientEmail, recipientPhone, destination })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert(`Shipment booked successfully!\nTracking Number: ${data.trackingNumber}`);
+                    document.getElementById('shipmentForm').reset();
+                    document.getElementById('senderName').value = localStorage.getItem('userName');
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Server connection error.');
+            }
+        });
+    </script>
+</body>
+</html>
