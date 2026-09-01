@@ -3,185 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTransit - Admin Portal & Payment Management</title>
+    <title>GlobalTransit - Admin Control Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 font-sans antialiased text-slate-800">
+<body class="bg-slate-900 font-sans antialiased text-slate-800 min-h-screen flex flex-col">
 
-    <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center">
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center text-white">
         <div class="flex items-center space-x-2">
-            <span class="text-xl font-bold tracking-tight">Global<span class="text-blue-500">Transit</span></span>
-            <span class="text-xs bg-blue-600 text-white font-semibold px-2 py-0.5 rounded-full">Admin Control Center</span>
+            <span class="text-xl font-black tracking-tight">Global<span class="text-blue-500">Transit</span></span>
+            <span class="bg-blue-600 text-xs px-2 py-0.5 rounded font-semibold">Admin Panel</span>
         </div>
-        <div class="flex items-center space-x-6 text-sm font-medium text-slate-300">
-            <a href="index.html" class="hover:text-white">Public Site</a>
-            <button onclick="logout()" class="text-red-400 hover:text-red-300">Sign Out</button>
-        </div>
+        <button onclick="logoutAdmin()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded transition">Sign Out</button>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-12 space-y-12">
-        <div class="mb-4">
-            <h1 class="text-2xl font-bold text-slate-900">Logistics Control & Payment Management</h1>
-            <p class="text-slate-500 text-sm mt-1">Post real-time transit checkpoints and manage active payment transfer details.</p>
-        </div>
+    <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-8">
 
-        <!-- Add Checkpoint Section -->
-        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-lg font-bold text-slate-900 mb-1">Add New Transit Checkpoint</h3>
-            <p class="text-xs text-slate-400 mb-6">Instantly update public tracking scan history.</p>
-
-            <form id="checkpointForm" class="space-y-5">
+        <!-- Global Shipping Fee & Payment Configuration Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700">Platform Settings & Pricing</h2>
+            <form id="settingsForm" onsubmit="saveAdminSettings(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Tracking Number</label>
-                    <input type="text" id="adminTrackingNum" required placeholder="e.g. GT-482910" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-600 outline-none">
+                    <label class="block font-semibold text-slate-500 mb-1">Standard Shipping Fee ($)</label>
+                    <input type="number" step="0.01" id="shipping_fee" placeholder="150.00" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Facility / Location</label>
-                        <input type="text" id="adminLocation" required placeholder="e.g. Chicago Sorting Hub, IL" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Status Description</label>
-                        <select id="adminStatus" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-600 outline-none">
-                            <option value="Payment Confirmed & Processing">Payment Confirmed & Processing</option>
-                            <option value="In Transit">In Transit</option>
-                            <option value="Arrived at Facility">Arrived at Facility</option>
-                            <option value="Out for Delivery">Out for Delivery</option>
-                            <option value="Delivered Successfully">Delivered Successfully</option>
-                        </select>
-                    </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Bitcoin Wallet Address</label>
+                    <input type="text" id="bitcoin" placeholder="bc1q..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
-
-                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-2">Post Checkpoint Scan</button>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Zelle Detail</label>
+                    <input type="text" id="zelle" placeholder="Email or Phone" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">CashApp Tag</label>
+                    <input type="text" id="cashapp" placeholder="$tag" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">PayPal Email</label>
+                    <input type="text" id="paypal" placeholder="email@domain.com" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Bank Wire Instructions</label>
+                    <input type="text" id="bankwire" placeholder="Bank name, account..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div class="md:col-span-3 pt-2">
+                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm">Save All Settings</button>
+                </div>
             </form>
         </div>
 
-        <!-- Update Payment Gateway Accounts Section -->
-        <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 class="text-lg font-bold text-slate-900 mb-1">Manage Payment Transfer Accounts</h3>
-            <p class="text-xs text-slate-400 mb-6">Update wallet addresses, tags, or bank routing numbers visible to users during checkout.</p>
-
-            <form id="paymentSettingsForm" class="space-y-4">
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Bitcoin (BTC) Wallet Address</label>
-                        <input type="text" id="setBtc" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Zelle Email / Phone</label>
-                        <input type="text" id="setZelle" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Cash App Tag</label>
-                        <input type="text" id="setCashapp" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Venmo Handle</label>
-                        <input type="text" id="setVenmo" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">PayPal Email</label>
-                        <input type="text" id="setPaypal" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Bank Wire Account & Routing</label>
-                        <input type="text" id="setBank" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm outline-none">
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-slate-900 text-white font-semibold py-3 rounded-lg hover:bg-slate-800 transition text-sm shadow-sm mt-2">Save Payment Gateway Details</button>
-            </form>
+        <!-- Registered Users Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700">Registered Users</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 uppercase">
+                            <th class="p-3">Name</th>
+                            <th class="p-3">Email</th>
+                            <th class="p-3">Phone</th>
+                            <th class="p-3">DOB</th>
+                            <th class="p-3">Joined Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody" class="divide-y divide-slate-100">
+                        <tr><td colspan="5" class="p-4 text-center text-slate-400">Loading users...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </main>
 
     <script>
         if (localStorage.getItem('isAdmin') !== 'true') {
-            alert('Unauthorized access.');
             window.location.href = 'auth.html';
         }
 
-        function logout() {
+        function logoutAdmin() {
             localStorage.clear();
             window.location.href = 'auth.html';
         }
 
-        // Load existing settings
-        async function loadPaymentSettings() {
+        async function loadAdminData() {
             try {
-                const res = await fetch('http://localhost:3000/api/admin/payment-settings');
-                const data = await res.json();
-                document.getElementById('setBtc').value = data.bitcoin || '';
-                document.getElementById('setZelle').value = data.zelle || '';
-                document.getElementById('setCashapp').value = data.cashapp || '';
-                document.getElementById('setVenmo').value = data.venmo || '';
-                document.getElementById('setPaypal').value = data.paypal || '';
-                document.getElementById('setBank').value = data.bankwire || '';
+                const settingsRes = await fetch('/api/admin/payment-settings');
+                const settings = await settingsRes.json();
+                for (const [key, value] of Object.entries(settings)) {
+                    const input = document.getElementById(key);
+                    if (input) input.value = value;
+                }
+
+                const usersRes = await fetch('/api/admin/users');
+                const users = await usersRes.json();
+                const tbody = document.getElementById('usersTableBody');
+                if (users.length > 0) {
+                    tbody.innerHTML = users.map(u => `
+                        <tr>
+                            <td class="p-3 font-medium text-slate-900">${u.name}</td>
+                            <td class="p-3 text-slate-600">${u.email}</td>
+                            <td class="p-3 text-slate-600">${u.phone || 'N/A'}</td>
+                            <td class="p-3 text-slate-600">${u.dob || 'N/A'}</td>
+                            <td class="p-3 text-slate-500">${new Date(u.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-400">No registered users found.</td></tr>`;
+                }
             } catch (err) {
                 console.error(err);
             }
         }
-        loadPaymentSettings();
+        loadAdminData();
 
-        // Save settings
-        document.getElementById('paymentSettingsForm').addEventListener('submit', async (e) => {
+        async function saveAdminSettings(e) {
             e.preventDefault();
-            const bitcoin = document.getElementById('setBtc').value;
-            const zelle = document.getElementById('setZelle').value;
-            const cashapp = document.getElementById('setCashapp').value;
-            const venmo = document.getElementById('setVenmo').value;
-            const paypal = document.getElementById('setPaypal').value;
-            const bankwire = document.getElementById('setBank').value;
+            const payload = {
+                shipping_fee: document.getElementById('shipping_fee').value,
+                bitcoin: document.getElementById('bitcoin').value,
+                zelle: document.getElementById('zelle').value,
+                cashapp: document.getElementById('cashapp').value,
+                venmo: document.getElementById('venmo').value,
+                paypal: document.getElementById('paypal').value,
+                bankwire: document.getElementById('bankwire').value,
+            };
 
             try {
-                const res = await fetch('http://localhost:3000/api/admin/payment-settings', {
+                const res = await fetch('/api/admin/payment-settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ bitcoin, zelle, cashapp, venmo, paypal, bankwire })
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    alert('Payment gateway accounts updated successfully!');
+                    alert('Settings updated successfully!');
                 } else {
-                    alert(data.message);
+                    alert(data.message || 'Error saving settings.');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Error updating payment settings.');
+                alert('Connection error.');
             }
-        });
-
-        // Checkpoint form submit
-        document.getElementById('checkpointForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const trackingNumber = document.getElementById('adminTrackingNum').value.trim();
-            const location = document.getElementById('adminLocation').value.trim();
-            const statusDescription = document.getElementById('adminStatus').value;
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/shipments/${trackingNumber}/events`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ location, statusDescription })
-                });
-                const data = await response.json();
-                if (response.ok) {
-                    alert(`Checkpoint successfully posted for ${trackingNumber}!`);
-                    document.getElementById('checkpointForm').reset();
-                } else {
-                    alert(data.message || 'Failed to post checkpoint.');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Connection error with the server.');
-            }
-        });
+        }
     </script>
 </body>
 </html>

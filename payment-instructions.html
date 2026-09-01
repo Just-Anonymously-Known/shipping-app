@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalTransit - Payment Instructions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 font-sans antialiased text-slate-800 flex flex-col min-h-screen justify-center items-center px-4">
+
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6">
+        <div class="text-center space-y-1">
+            <span class="text-2xl font-black tracking-tight text-slate-900">Global<span class="text-blue-600">Transit</span></span>
+            <p class="text-xs text-slate-500">Booking Successful! Complete your payment below.</p>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl space-y-2 text-xs">
+            <p><span class="font-semibold text-slate-600">Tracking Number:</span> <span id="trackNumDisplay" class="font-bold text-blue-600"></span></p>
+            <p><span class="font-semibold text-slate-600">Selected Method:</span> <span id="methodDisplay" class="uppercase font-bold text-slate-800"></span></p>
+            <p><span class="font-semibold text-slate-600">Shipping Fee:</span> <span id="feeDisplay" class="font-bold text-emerald-600"></span></p>
+        </div>
+
+        <div id="paymentDetailsBox" class="bg-blue-50 border border-blue-100 p-4 rounded-xl text-xs space-y-2 text-blue-900">
+            <p class="font-bold">Instructions:</p>
+            <p id="instructionsText" class="whitespace-pre-line">Loading payment credentials...</p>
+        </div>
+
+        <button onclick="confirmPaymentSent()" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm shadow-sm">I Have Paid - View Dashboard</button>
+
+        <div class="text-center pt-2">
+            <a href="dashboard.html" class="text-xs text-slate-400 hover:text-slate-600 transition">Go to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const trackingNum = urlParams.get('tracking');
+        const method = urlParams.get('method');
+
+        document.getElementById('trackNumDisplay').innerText = trackingNum || 'N/A';
+        document.getElementById('methodDisplay').innerText = method || 'Bank Transfer';
+
+        async function loadPaymentData() {
+            try {
+                const [settingsRes, shipmentRes] = await Promise.all([
+                    fetch('/api/admin/payment-settings'),
+                    fetch(`/api/shipments/${trackingNum}`)
+                ]);
+                const settings = await settingsRes.json();
+                const shipment = await shipmentRes.json();
+
+                if (shipment && shipment.amount) {
+                    document.getElementById('feeDisplay').innerText = `$${shipment.amount}`;
+                }
+
+                let details = "Please contact support or use your selected payment method details provided by the administrator.";
+                if (method && settings[method]) {
+                    details = `Send payment to the following ${method.toUpperCase()} details:\n\n${settings[method]}`;
+                }
+                document.getElementById('instructionsText').innerText = details;
+            } catch (err) {
+                document.getElementById('instructionsText').innerText = "Error loading instructions. Please check your dashboard.";
+            }
+        }
+        loadPaymentData();
+
+        function confirmPaymentSent() {
+            alert('Payment notification sent. Your shipment status will update once confirmed by admin.');
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>

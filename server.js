@@ -20,19 +20,18 @@ const initDb = async () => {
                 name VARCHAR(255) NOT NULL,
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
+                phone VARCHAR(50),
+                dob VARCHAR(50),
                 is_admin BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-            ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
-            ALTER TABLE users ADD COLUMN IF NOT EXISTS dob VARCHAR(50);
-
             CREATE TABLE IF NOT EXISTS shipments (
                 id SERIAL PRIMARY KEY,
                 tracking_number VARCHAR(50) UNIQUE NOT NULL,
                 sender_name VARCHAR(255) NOT NULL,
                 recipient_name VARCHAR(255) NOT NULL,
                 recipient_email VARCHAR(255) NOT NULL,
-                recipient_phone VARCHAR(255) NOT NULL,
+                recipient_phone VARCHAR(50) NOT NULL,
                 destination TEXT NOT NULL,
                 payment_method VARCHAR(100) NOT NULL,
                 amount DECIMAL(10,2) NOT NULL,
@@ -51,7 +50,7 @@ const initDb = async () => {
                 value TEXT
             );
         `);
-        console.log('Database tables and columns verified/initialized.');
+        console.log('Database tables verified/initialized.');
     } catch (err) {
         console.error('Error initializing tables:', err);
     }
@@ -77,6 +76,16 @@ app.post('/api/signup', async (req, res) => {
             'INSERT INTO users (name, email, password, phone, dob) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, phone, dob, is_admin',
             [name, email, password, phone, dob]
         );
+
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: `Welcome to GlobalTransit!`,
+                text: `Hello ${name},\n\nYour account has been successfully created. Welcome to GlobalTransit, your trusted logistics partner!`
+            }).catch(mailErr => console.log('Welcome mail error:', mailErr));
+        }
+
         res.status(201).json(newUser.rows[0]);
     } catch (err) {
         console.error(err);
@@ -87,11 +96,22 @@ app.post('/api/signup', async (req, res) => {
 app.post('/api/signin', async (req, res) => {
     const { email, password } = req.body;
     try {
-        const user = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
-        if (user.rows.length === 0) {
+        const userResult = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
+        if (userResult.rows.length === 0) {
             return res.status(400).json({ message: 'Invalid email or password.' });
         }
-        res.json(user.rows[0]);
+        const user = userResult.rows[0];
+
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: user.email,
+                subject: `Security Alert: New Sign-in to GlobalTransit`,
+                text: `Hello ${user.name},\n\nThis is a notification that you have just signed in to your GlobalTransit account.`
+            }).catch(mailErr => console.log('Login mail error:', mailErr));
+        }
+
+        res.json(user);
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Server error during signin.' });
@@ -99,9 +119,12 @@ app.post('/api/signin', async (req, res) => {
 });
 
 app.post('/api/shipments', async (req, res) => {
-    const { senderName, recipientName, recipientEmail, recipientPhone, destination, paymentMethod, amount } = req.body;
+    const { senderName, recipientName, recipientEmail, recipientPhone, destination, paymentMethod } = req.body;
     const trackingNumber = 'GT-' + Math.floor(100000 + Math.random() * 900000);
     try {
+        const feeSetting = await pool.query("SELECT value FROM admin_settings WHERE key = 'shipping_fee'");
+        const amount = feeSetting.rows.length > 0 ? parseFloat(feeSetting.rows[0].value) : 150.00;
+
         await pool.query(
             'INSERT INTO shipments (tracking_number, sender_name, recipient_name, recipient_email, recipient_phone, destination, payment_method, amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
             [trackingNumber, senderName, recipientName, recipientEmail, recipientPhone, destination, paymentMethod, amount]
@@ -116,11 +139,11 @@ app.post('/api/shipments', async (req, res) => {
                 from: process.env.EMAIL_USER,
                 to: recipientEmail,
                 subject: `GlobalTransit Shipment Booked - ${trackingNumber}`,
-                text: `Hello ${recipientName},\n\nYour shipment to ${destination} has been successfully booked.\nTracking Number: ${trackingNumber}\n\nTrack your package live on our platform!`
+                text: `Hello ${recipientName},\n\nYour shipment to ${destination} has been successfully booked.\nTracking Number: ${trackingNumber}\nShipping Fee: $${amount}\n\nTrack your package live on our platform!`
             }).catch(mailErr => console.log('Mail send error:', mailErr));
         }
 
-        res.status(201).json({ success: true, trackingNumber });
+        res.status(201).json({ success: true, trackingNumber, amount });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: 'Error creating shipment.' });
@@ -169,18 +192,29 @@ app.get('/api/admin/payment-settings', async (req, res) => {
 });
 
 app.post('/api/admin/payment-settings', async (req, res) => {
-    const { bitcoin, zelle, cashapp, venmo, paypal, bankwire } = req.body;
+    const { shipping_fee, bitcoin, zelle, cashapp, venmo, paypal, bankwire } = req.body;
     try {
-        const entries = Object.entries({ bitcoin, zelle, cashapp, venmo, paypal, bankwire });
+        const entries = Object.entries({ shipping_fee, bitcoin, zelle, cashapp, venmo, paypal, bankwire });
         for (let [key, value] of entries) {
-            await pool.query(
-                'INSERT INTO admin_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
-                [key, value]
-            );
+            if (value !== undefined) {
+                await pool.query(
+                    'INSERT INTO admin_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+                    [key, value]
+                );
+            }
         }
-        res.json({ success: true, message: 'Payment settings updated.' });
+        res.json({ success: true, message: 'Settings updated.' });
     } catch (err) {
         res.status(500).json({ message: 'Error saving settings.' });
+    }
+});
+
+app.get('/api/admin/users', async (req, res) => {
+    try {
+        const users = await pool.query('SELECT id, name, email, phone, dob, created_at FROM users ORDER BY id DESC');
+        res.json(users.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Error loading users.' });
     }
 });
 

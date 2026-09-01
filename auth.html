@@ -14,7 +14,6 @@
             <p id="formSubtitle" class="text-xs text-slate-500">Sign in to your account or book a shipment</p>
         </div>
 
-        <!-- Toggle Tabs -->
         <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
             <button onclick="switchTab('signin')" id="tabSignin" class="flex-1 py-2 rounded-lg bg-white text-slate-900 shadow-sm transition">Sign In</button>
             <button onclick="switchTab('signup')" id="tabSignup" class="flex-1 py-2 rounded-lg text-slate-500 transition">Register</button>
@@ -37,7 +36,7 @@
             <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm shadow-sm">Sign In</button>
         </form>
 
-        <!-- Register Form (Hidden by default) -->
+        <!-- Register Form -->
         <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4 hidden">
             <div>
                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Full Name / Company</label>
@@ -106,7 +105,6 @@
             const identifier = document.getElementById('signinEmail').value.trim();
             const password = document.getElementById('signinPassword').value.trim();
 
-            // Admin quick bypass login
             if (identifier.toLowerCase() === 'admin' && password === 'Admin@55') {
                 localStorage.setItem('userName', 'Administrator');
                 localStorage.setItem('isAdmin', 'true');
@@ -150,7 +148,7 @@
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    alert('Account created successfully! Please sign in.');
+                    alert('Account created successfully! Check your email for a welcome message.');
                     switchTab('signin');
                     document.getElementById('signupForm').reset();
                 } else {
