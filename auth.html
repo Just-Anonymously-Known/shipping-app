@@ -6,7 +6,7 @@
     <title>GlobalTransit - Sign In & Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 font-sans antialiased text-slate-800 flex flex-col min-h-screen justify-center items-center px-4">
+<body class="bg-slate-900 font-sans antialiased text-slate-800 flex flex-col min-h-screen justify-center items-center px-4 py-8">
 
     <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6">
         <div class="text-center space-y-1">
@@ -30,6 +30,10 @@
                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
                 <input type="password" id="signinPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="showSigninPass" onclick="togglePassword('signinPassword')" class="rounded border-slate-300">
+                <label for="showSigninPass" class="text-xs text-slate-600 select-none">Show password</label>
+            </div>
             <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm shadow-sm">Sign In</button>
         </form>
 
@@ -43,9 +47,23 @@
                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
                 <input type="email" id="signupEmail" required placeholder="name@example.com" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
             </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Phone Number</label>
+                    <input type="tel" id="signupPhone" required placeholder="+1 (555) 000-0000" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Date of Birth</label>
+                    <input type="date" id="signupDob" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+            </div>
             <div>
                 <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
                 <input type="password" id="signupPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+            <div class="flex items-center space-x-2">
+                <input type="checkbox" id="showSignupPass" onclick="togglePassword('signupPassword')" class="rounded border-slate-300">
+                <label for="showSignupPass" class="text-xs text-slate-600 select-none">Show password</label>
             </div>
             <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm shadow-sm">Create Account</button>
         </form>
@@ -78,12 +96,16 @@
             }
         }
 
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === 'password' ? 'text' : 'password';
+        }
+
         async function handleSignin(e) {
             e.preventDefault();
             const email = document.getElementById('signinEmail').value.trim();
             const password = document.getElementById('signinPassword').value.trim();
 
-            // Hardcoded Admin Quick Access Check
             if (email.toLowerCase() === 'admin' && password === 'Admin@55') {
                 localStorage.setItem('userName', 'Administrator');
                 localStorage.setItem('isAdmin', 'true');
@@ -115,13 +137,15 @@
             e.preventDefault();
             const name = document.getElementById('signupName').value.trim();
             const email = document.getElementById('signupEmail').value.trim();
+            const phone = document.getElementById('signupPhone').value.trim();
+            const dob = document.getElementById('signupDob').value.trim();
             const password = document.getElementById('signupPassword').value.trim();
 
             try {
                 const res = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
+                    body: JSON.stringify({ name, email, password, phone, dob })
                 });
                 const data = await res.json();
                 if (res.ok) {
