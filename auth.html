@@ -31,6 +31,12 @@
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
                     <input type="password" id="loginPassword" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
+                
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="showLoginPass" onclick="togglePassword('loginPassword', this.id)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                    <label for="showLoginPass" class="text-xs text-slate-600 cursor-pointer select-none">Show password</label>
+                </div>
+
                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-2">Sign In</button>
             </form>
 
@@ -52,6 +58,12 @@
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
                     <input type="password" id="regPassword" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
+
+                <div class="flex items-center space-x-2 pt-1">
+                    <input type="checkbox" id="showRegPass" onclick="togglePassword('regPassword', this.id)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                    <label for="showRegPass" class="text-xs text-slate-600 cursor-pointer select-none">Show password</label>
+                </div>
+
                 <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-2">Create Account</button>
             </form>
         </div>
@@ -72,6 +84,12 @@
             }
         }
 
+        function togglePassword(fieldId, checkboxId) {
+            const passwordField = document.getElementById(fieldId);
+            const isChecked = document.getElementById(checkboxId).checked;
+            passwordField.type = isChecked ? 'text' : 'password';
+        }
+
         async function handleLogin(e) {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
@@ -88,7 +106,6 @@
                 localStorage.setItem('userName', data.name);
                 localStorage.setItem('userEmail', data.email);
                 
-                // If admin credentials match, route directly to admin portal
                 if (data.isAdmin) {
                     localStorage.setItem('isAdmin', 'true');
                     window.location.href = 'admin.html';
