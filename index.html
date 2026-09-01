@@ -2,82 +2,68 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>GlobalTransit - Global Logistics & Package Tracking</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800 flex flex-col min-h-screen">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-slate-900 text-white px-6 py-4 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-50 shadow-md gap-3">
-        <div class="flex items-center space-x-3">
+    <header class="bg-slate-900 text-white px-4 sm:px-6 py-4 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-50 shadow-md gap-3">
+        <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
             <span class="text-xl font-black tracking-tight">Global<span class="text-blue-500">Transit</span></span>
             <span id="geoBadge" class="text-[10px] bg-blue-600/30 border border-blue-500 text-blue-400 px-2 py-0.5 rounded-full font-semibold">Detecting Location...</span>
         </div>
         
-        <!-- Custom Sleek Language Selector -->
-        <div class="flex items-center space-x-3">
-            <div class="relative">
-                <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-slate-800 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 outline-none cursor-pointer hover:bg-slate-700 transition">
-                    <option value="en">🌐 English (Global)</option>
-                    <option value="es">🇪🇸 Español (Spanish)</option>
-                    <option value="fr">🇫🇷 Français (French)</option>
-                    <option value="de">🇩🇪 Deutsch (German)</option>
-                    <option value="zh-CN">🇨🇳 简体中文 (Chinese)</option>
-                    <option value="ja">🇯🇵 日本語 (Japanese)</option>
-                    <option value="pt">🇧🇷 Português (Portuguese)</option>
-                    <option value="ar">🇸🇦 العربية (Arabic)</option>
-                    <option value="yo">🇳🇬 Yorùbá (Yoruba)</option>
-                    <option value="ig">🇳🇬 Igbo (Igbo)</option>
-                    <option value="ha">🇳🇬 Hausa (Hausa)</option>
-                    <option value="sw">🇰🇪 Kiswahili (Swahili)</option>
-                    <option value="it">🇮🇹 Italiano (Italian)</option>
-                    <option value="nl">🇳🇱 Nederlands (Dutch)</option>
-                    <option value="ko">🇰🇷 한국어 (Korean)</option>
-                    <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
-                    <option value="ru">🇷🇺 Русский (Russian)</option>
-                </select>
+        <div class="flex items-center space-x-3 w-full sm:w-auto justify-between">
+            <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-slate-800 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 outline-none cursor-pointer">
+                <option value="en">🌐 English (Global)</option>
+                <option value="es">🇪🇸 Español (Spanish)</option>
+                <option value="fr">🇫🇷 Français (French)</option>
+                <option value="de">🇩🇪 Deutsch (German)</option>
+                <option value="zh-CN">🇨🇳 简体中文 (Chinese)</option>
+                <option value="ja">🇯🇵 日本語 (Japanese)</option>
+                <option value="pt">🇧🇷 Português (Portuguese)</option>
+                <option value="ar">🇸🇦 العربية (Arabic)</option>
+                <option value="yo">🇳🇬 Yorùbá (Yoruba)</option>
+                <option value="ig">🇳🇬 Igbo (Igbo)</option>
+                <option value="ha">🇳🇬 Hausa (Hausa)</option>
+                <option value="sw">🇰🇪 Kiswahili (Swahili)</option>
+            </select>
+            <div class="flex items-center space-x-3 text-sm font-semibold">
+                <a href="auth.html" class="text-slate-300 hover:text-white transition">Sign In</a>
+                <a href="auth.html" class="bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition shadow-sm text-xs">Book</a>
             </div>
-        </div>
-
-        <div class="flex items-center space-x-4 text-sm font-semibold">
-            <a href="auth.html" class="text-slate-300 hover:text-white transition">Sign In</a>
-            <a href="auth.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">Book Shipment</a>
         </div>
     </header>
 
-    <!-- Hidden Google Translate Element for backend script execution -->
     <div id="google_translate_element" class="hidden"></div>
 
-    <!-- Hero / Tracking Section -->
-    <section class="bg-slate-900 text-white py-16 px-6 text-center">
+    <section class="bg-slate-900 text-white py-12 px-4 sm:px-6 text-center">
         <div class="max-w-2xl mx-auto space-y-6">
-            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">The World On-Time</h1>
-            <p class="text-slate-400 text-sm sm:text-base">Track your US domestic or international shipments instantly with real-time milestone scans.</p>
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight">The World On-Time</h1>
+            <p class="text-slate-400 text-xs sm:text-base">Track your US domestic or international shipments instantly with real-time milestone scans.</p>
             
             <div class="bg-white p-2 rounded-2xl shadow-lg flex flex-col sm:flex-row gap-2">
-                <input type="text" id="trackingInput" placeholder="Enter tracking number (e.g. GT-482910)" class="flex-1 px-4 py-3 text-slate-800 text-sm outline-none uppercase font-semibold">
-                <button onclick="trackPackage()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition text-sm">Track Package</button>
+                <input type="text" id="trackingInput" placeholder="Enter tracking number (e.g. GT-482910)" class="flex-1 px-4 py-3 text-slate-800 text-xs sm:text-sm outline-none uppercase font-semibold">
+                <button onclick="trackPackage()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-semibold transition text-xs sm:text-sm">Track Package</button>
             </div>
         </div>
     </section>
 
-    <!-- Tracking Results & Interactive Map Container -->
-    <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-10 space-y-12">
-        <div id="trackingResultContainer" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+    <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-8 space-y-10">
+        <div id="trackingResultContainer" class="hidden bg-white p-5 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
             <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 gap-2">
                 <div>
                     <span id="resTrackingNum" class="text-xs font-bold text-blue-600 uppercase tracking-wide"></span>
-                    <h2 id="resDestination" class="text-xl font-bold text-slate-900 mt-0.5"></h2>
+                    <h2 id="resDestination" class="text-lg sm:text-xl font-bold text-slate-900 mt-0.5"></h2>
                 </div>
                 <span id="resStatusBadge" class="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full"></span>
             </div>
 
-            <!-- Interactive Leaflet Map Preview -->
             <div>
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Live Transit Route Map</h3>
-                <div id="map" class="w-full h-64 rounded-xl border border-slate-200 z-10"></div>
+                <div id="map" class="w-full h-56 sm:h-64 rounded-xl border border-slate-200 z-10"></div>
             </div>
 
             <div>
@@ -86,98 +72,95 @@
             </div>
         </div>
 
-        <!-- Enterprise Feature Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
-                <div class="h-48 bg-slate-200 overflow-hidden">
+                <div class="h-40 sm:h-48 bg-slate-200 overflow-hidden">
                     <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover">
                 </div>
-                <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">Navigate Global Trade & Customs</h3>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Navigate Global Trade & Customs</h3>
                         <p class="text-xs text-slate-500 mt-1">Stay informed on international trade updates and seamless border clearances.</p>
                     </div>
-                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-4">Stay Informed →</a>
+                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-3">Stay Informed →</a>
                 </div>
             </div>
 
             <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
-                <div class="h-48 bg-slate-200 overflow-hidden">
+                <div class="h-40 sm:h-48 bg-slate-200 overflow-hidden">
                     <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80" class="w-full h-full object-cover">
                 </div>
-                <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                <div class="p-5 space-y-3 flex-1 flex flex-col justify-between">
                     <div>
-                        <h3 class="text-lg font-bold text-slate-900">Joint Shipping Made Simple</h3>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Joint Shipping Made Simple</h3>
                         <p class="text-xs text-slate-500 mt-1">Recipients and shippers can coordinate pickups online effortlessly without phone calls.</p>
                     </div>
-                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-4">Schedule a Pickup →</a>
+                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-3">Schedule a Pickup →</a>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Floating Customer Support Widget -->
-    <div class="fixed bottom-6 right-6 z-50">
-        <button onclick="toggleSupportChat()" class="bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105">
+    <div class="fixed bottom-4 right-4 z-50">
+        <button onclick="toggleSupportChat()" class="bg-blue-600 hover:bg-blue-700 text-white p-3.5 sm:p-4 rounded-full shadow-2xl flex items-center justify-center transition transform hover:scale-105">
             💬
         </button>
-        <div id="supportChatBox" class="hidden absolute bottom-16 right-0 w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
-            <div class="bg-slate-900 text-white p-4 flex justify-between items-center">
-                <span class="text-sm font-bold">GlobalTransit Support</span>
+        <div id="supportChatBox" class="hidden absolute bottom-14 right-0 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+            <div class="bg-slate-900 text-white p-3.5 flex justify-between items-center">
+                <span class="text-xs sm:text-sm font-bold">GlobalTransit Support</span>
                 <button onclick="toggleSupportChat()" class="text-slate-400 hover:text-white text-xs">✕</button>
             </div>
-            <div class="p-4 h-64 overflow-y-auto space-y-3 text-xs bg-slate-50" id="chatMessages">
-                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+            <div class="p-3 h-56 overflow-y-auto space-y-3 text-xs bg-slate-50" id="chatMessages">
+                <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm">
                     <p class="font-bold text-blue-600">Agent Alex</p>
-                    <p class="text-slate-600 mt-0.5">Hello! How can we assist with your US or international shipment today?</p>
+                    <p class="text-slate-600 mt-0.5">Hello! How can we assist with your shipment today?</p>
                 </div>
             </div>
-            <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+            <div class="p-2.5 bg-white border-t border-slate-200 flex gap-2">
                 <input type="text" id="chatInput" placeholder="Type message..." class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-xs outline-none">
-                <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700">Send</button>
+                <button onclick="sendChatMessage()" class="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700">Send</button>
             </div>
         </div>
     </div>
 
-    <!-- Professional Footer -->
-    <footer class="bg-slate-900 text-slate-400 text-xs py-12 px-6 mt-16 border-t border-slate-800">
-        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div class="space-y-3">
-                <h4 class="text-white font-bold uppercase tracking-wider">Our Company</h4>
-                <ul class="space-y-2">
-                    <li><a href="#" class="hover:text-white transition">About GlobalTransit</a></li>
+    <footer class="bg-slate-900 text-slate-400 text-xs py-10 px-6 mt-16 border-t border-slate-800">
+        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+            <div class="space-y-2">
+                <h4 class="text-white font-bold uppercase tracking-wider text-[11px]">Our Company</h4>
+                <ul class="space-y-1.5 text-[11px]">
+                    <li><a href="#" class="hover:text-white transition">About</a></li>
                     <li><a href="#" class="hover:text-white transition">Careers</a></li>
                 </ul>
             </div>
-            <div class="space-y-3">
-                <h4 class="text-white font-bold uppercase tracking-wider">New Customer</h4>
-                <ul class="space-y-2">
-                    <li><a href="auth.html" class="hover:text-white transition">Open an Account</a></li>
+            <div class="space-y-2">
+                <h4 class="text-white font-bold uppercase tracking-wider text-[11px]">New Customer</h4>
+                <ul class="space-y-1.5 text-[11px]">
+                    <li><a href="auth.html" class="hover:text-white transition">Open Account</a></li>
                     <li><a href="auth.html" class="hover:text-white transition">How to Ship</a></li>
                 </ul>
             </div>
-            <div class="space-y-3">
-                <h4 class="text-white font-bold uppercase tracking-wider">Resources</h4>
-                <ul class="space-y-2">
-                    <li><a href="#" class="hover:text-white transition">Locations & Hubs</a></li>
+            <div class="space-y-2">
+                <h4 class="text-white font-bold uppercase tracking-wider text-[11px]">Resources</h4>
+                <ul class="space-y-1.5 text-[11px]">
+                    <li><a href="#" class="hover:text-white transition">Hubs</a></li>
                     <li><a href="#" class="hover:text-white transition">Fuel Surcharge</a></li>
                 </ul>
             </div>
-            <div class="space-y-3">
-                <h4 class="text-white font-bold uppercase tracking-wider">Language & Region</h4>
-                <a href="global.html" class="text-white font-medium hover:underline block">🌐 Change Region Hub</a>
+            <div class="space-y-2">
+                <h4 class="text-white font-bold uppercase tracking-wider text-[11px]">Region</h4>
+                <a href="global.html" class="text-white font-medium hover:underline block text-[11px]">🌐 Change Hub</a>
             </div>
         </div>
-        <div class="max-w-6xl mx-auto border-t border-slate-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <p>© GlobalTransit 1995–2026. All rights reserved.</p>
-            <div class="flex space-x-6">
-                <a href="#" class="hover:text-white transition">Terms of Use</a>
-                <a href="#" class="hover:text-white transition">Privacy Security</a>
+        <div class="max-w-6xl mx-auto border-t border-slate-800 pt-4 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px]">
+            <p>© GlobalTransit 1995–2026.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="hover:text-white transition">Terms</a>
+                <a href="#" class="hover:text-white transition">Privacy</a>
             </div>
         </div>
     </footer>
 
-    <!-- Leaflet JS & Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         async function detectUserLocation() {
@@ -201,8 +184,8 @@
             if (!msg) return;
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML += `
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-right ml-6">
-                    <p class="font-bold text-blue-900">You</p>
+                <div class="bg-blue-50 p-2.5 rounded-xl border border-blue-100 text-right ml-4">
+                    <p class="font-bold text-blue-900 text-[10px]">You</p>
                     <p class="text-slate-700 mt-0.5">${msg}</p>
                 </div>
             `;
@@ -211,9 +194,9 @@
 
             setTimeout(() => {
                 chatMessages.innerHTML += `
-                    <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm mr-6">
-                        <p class="font-bold text-blue-600">Agent Alex</p>
-                        <p class="text-slate-600 mt-0.5">Thanks for your message! Our logistics specialists will review your inquiry shortly.</p>
+                    <div class="bg-white p-2.5 rounded-xl border border-slate-200 shadow-sm mr-4">
+                        <p class="font-bold text-blue-600 text-[10px]">Agent Alex</p>
+                        <p class="text-slate-600 mt-0.5">Thanks! Our logistics specialists will assist shortly.</p>
                     </div>
                 `;
                 chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -247,9 +230,9 @@
                 events.forEach(ev => {
                     timelineList.innerHTML += `
                         <div class="relative pb-4">
-                            <div class="text-xs text-blue-600 font-bold">${new Date(ev.created_at).toLocaleString()}</div>
-                            <div class="text-sm font-bold text-slate-900 mt-0.5">${ev.status_description}</div>
-                            <div class="text-xs text-slate-500">Facility: ${ev.location}</div>
+                            <div class="text-[11px] text-blue-600 font-bold">${new Date(ev.created_at).toLocaleString()}</div>
+                            <div class="text-xs sm:text-sm font-bold text-slate-900 mt-0.5">${ev.status_description}</div>
+                            <div class="text-[11px] text-slate-500">Facility: ${ev.location}</div>
                         </div>
                     `;
                 });
@@ -268,18 +251,16 @@
 
                 const originCoords = [40.7128, -74.0060];
                 const destCoords = [34.0522, -118.2437];
-                L.marker(originCoords).addTo(map).bindPopup("US Origin Sorting Hub (New York)").openPopup();
+                L.marker(originCoords).addTo(map).bindPopup("US Origin Hub (New York)").openPopup();
                 L.marker(destCoords).addTo(map).bindPopup(`Destination: ${shipment.destination}`);
                 L.polyline([originCoords, destCoords], { color: '#2563eb', weight: 4 }).addTo(map);
 
             } catch (err) {
                 console.error(err);
-                alert('Server connection error while tracking.');
+                alert('Server connection error.');
             }
         }
     </script>
-
-    <!-- Google Translate Script & Custom Bridge -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
@@ -288,14 +269,12 @@
                 autoDisplay: false
             }, 'google_translate_element');
         }
-
         function changeLanguage(langCode) {
             const selectField = document.querySelector('.goog-te-combo');
             if (selectField) {
                 selectField.value = langCode;
                 selectField.dispatchEvent(new Event('change'));
             } else {
-                // Retry if widget takes a second to load
                 setTimeout(() => {
                     const retryField = document.querySelector('.goog-te-combo');
                     if (retryField) {
