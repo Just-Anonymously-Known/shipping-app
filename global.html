@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GlobalTransit - Select Your Location and Language</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 flex flex-col min-h-screen">
+
+    <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center sticky top-0 z-50">
+        <a href="index.html" class="text-xl font-black tracking-tight">Global<span class="text-blue-500">Transit</span></a>
+        <div class="flex items-center space-x-6">
+            <div id="google_translate_element" class="text-xs"></div>
+            <a href="index.html" class="text-sm text-slate-300 hover:text-white transition">Back to Home</a>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-12 space-y-10">
+        <div>
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">Select Your Location and Language</h1>
+            <p class="text-slate-500 text-sm mt-1">Choose your regional hub or use the top menu to instantly translate the platform.</p>
+        </div>
+
+        <!-- Quick Select Hubs -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-4 text-sm font-semibold">
+            <div class="p-3 border border-slate-100 rounded-xl bg-slate-50">
+                <span class="text-slate-900 block font-bold">United States</span>
+                <span class="text-blue-600 text-xs cursor-pointer hover:underline">English</span> | <span class="text-blue-600 text-xs cursor-pointer hover:underline">Español</span>
+            </div>
+            <div class="p-3 border border-slate-100 rounded-xl bg-slate-50">
+                <span class="text-slate-900 block font-bold">China</span>
+                <span class="text-blue-600 text-xs cursor-pointer hover:underline">English</span> | <span class="text-blue-600 text-xs cursor-pointer hover:underline">简体中文</span>
+            </div>
+            <div class="p-3 border border-slate-100 rounded-xl bg-slate-50">
+                <span class="text-slate-900 block font-bold">United Kingdom</span>
+                <span class="text-blue-600 text-xs cursor-pointer hover:underline">English</span>
+            </div>
+            <div class="p-3 border border-slate-100 rounded-xl bg-slate-50">
+                <span class="text-slate-900 block font-bold">Nigeria</span>
+                <span class="text-blue-600 text-xs cursor-pointer hover:underline">English</span>
+            </div>
+        </div>
+
+        <!-- Regional Breakdown -->
+        <div class="space-y-8">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <h2 class="text-lg font-bold text-blue-600 uppercase tracking-wide">Africa</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+                    <div>Nigeria | <a href="#" class="text-blue-600 hover:underline">English</a></div>
+                    <div>South Africa | <a href="#" class="text-blue-600 hover:underline">English</a></div>
+                    <div>Kenya | <a href="#" class="text-blue-600 hover:underline">English</a></div>
+                    <div>Ghana | <a href="#" class="text-blue-600 hover:underline">English</a></div>
+                    <div>Egypt | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">العربية</a></div>
+                    <div>Morocco | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">Français</a></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <h2 class="text-lg font-bold text-blue-600 uppercase tracking-wide">North & South America</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+                    <div>United States | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">Español</a></div>
+                    <div>Canada | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">Français</a></div>
+                    <div>Mexico | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">Español</a></div>
+                    <div>Brazil | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">Português</a></div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                <h2 class="text-lg font-bold text-blue-600 uppercase tracking-wide">Europe & Asia</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+                    <div>United Kingdom | <a href="#" class="text-blue-600 hover:underline">English</a></div>
+                    <div>Germany | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">Deutsch</a></div>
+                    <div>China | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">简体中文</a></div>
+                    <div>Japan | <a href="#" class="text-blue-600 hover:underline">English</a> | <a href="#" class="text-blue-600 hover:underline">日本語</a></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 text-xs py-8 px-6 mt-16 border-t border-slate-800 text-center">
+        <p>© GlobalTransit 1995–2026. Global Logistics Network.</p>
+    </footer>
+
+    <!-- Google Translate Widget Script Initialization -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,es,fr,de,zh-CN,ja,pt,ar',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+</body>
+</html>

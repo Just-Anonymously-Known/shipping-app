@@ -3,84 +3,196 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTransit - Global Logistics & Tracking</title>
+    <title>GlobalTransit - Global Logistics & Package Tracking</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 font-sans antialiased text-slate-800">
+<body class="bg-slate-50 font-sans antialiased text-slate-800 flex flex-col min-h-screen">
 
-    <!-- Navbar -->
-    <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center">
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 text-white px-6 py-4 flex flex-col sm:flex-row justify-between items-center sticky top-0 z-50 shadow-md gap-3">
         <div class="flex items-center space-x-2">
-            <span class="text-xl font-bold tracking-tight">Global<span class="text-blue-500">Transit</span></span>
+            <span class="text-xl font-black tracking-tight">Global<span class="text-blue-500">Transit</span></span>
         </div>
-        <div class="flex items-center space-x-6 text-sm font-medium text-slate-300">
-            <a href="index.html" class="text-white">Home</a>
-            <a href="auth.html" class="hover:text-white">Sign In / Register</a>
-            <a href="dashboard.html" class="hover:text-white">Dashboard</a>
-            <a href="admin.html" class="hover:text-white">Admin Portal</a>
+        
+        <!-- Google Translate Element Widget -->
+        <div id="google_translate_element" class="text-xs"></div>
+
+        <div class="flex items-center space-x-4 text-sm font-semibold">
+            <a href="auth.html" class="text-slate-300 hover:text-white transition">Sign In</a>
+            <a href="auth.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">Book Shipment</a>
         </div>
     </header>
 
-    <!-- Hero Section with Public Tracker -->
-    <main class="max-w-4xl mx-auto px-6 py-16 text-center">
-        <h1 class="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Fast & Reliable Global Logistics</h1>
-        <p class="text-slate-500 text-base mb-10 max-w-xl mx-auto">Track your international cargo live with instant milestone updates delivered directly to your inbox and phone.</p>
+    <!-- Hero / Tracking Section -->
+    <section class="bg-slate-900 text-white py-16 px-6 text-center">
+        <div class="max-w-2xl mx-auto space-y-6">
+            <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight">The World On-Time</h1>
+            <p class="text-slate-400 text-sm sm:text-base">Track your US domestic or international shipments instantly with real-time milestone scans.</p>
+            
+            <div class="bg-white p-2 rounded-2xl shadow-lg flex flex-col sm:flex-row gap-2">
+                <input type="text" id="trackingInput" placeholder="Enter tracking number (e.g. GT-482910)" class="flex-1 px-4 py-3 text-slate-800 text-sm outline-none uppercase font-semibold">
+                <button onclick="trackPackage()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-semibold transition text-sm">Track Package</button>
+            </div>
+        </div>
+    </section>
 
-        <!-- Search Box -->
-        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto flex flex-col sm:flex-row gap-3">
-            <input type="text" id="trackInput" placeholder="Enter Tracking Number (e.g. GT-482910)" class="flex-1 px-4 py-3 border border-slate-200 rounded-lg text-sm uppercase focus:ring-2 focus:ring-blue-600 outline-none">
-            <button onclick="trackShipment()" class="bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm">Track Package</button>
+    <!-- Tracking Results & Timeline Modal/Container -->
+    <main class="flex-1 max-w-4xl w-full mx-auto px-6 py-10 space-y-12">
+        <div id="trackingResultContainer" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-100 pb-4 gap-2">
+                <div>
+                    <span id="resTrackingNum" class="text-xs font-bold text-blue-600 uppercase tracking-wide"></span>
+                    <h2 id="resDestination" class="text-xl font-bold text-slate-900 mt-0.5"></h2>
+                </div>
+                <span id="resStatusBadge" class="bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1.5 rounded-full"></span>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Milestone Scan History</h3>
+                <div id="timelineList" class="space-y-4 border-l-2 border-blue-600 pl-4 ml-2">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
         </div>
 
-        <!-- Tracking Results Container -->
-        <div id="resultContainer" class="mt-10 hidden text-left max-w-2xl mx-auto bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-6">
-                <div>
-                    <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold">Tracking Number</span>
-                    <h3 id="resTrackingNum" class="text-xl font-bold text-slate-900"></h3>
+        <!-- Enterprise Feature Cards Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Card 1 -->
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                <div class="h-48 bg-slate-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80" alt="Warehouse logistics" class="w-full h-full object-cover">
                 </div>
-                <span id="resStatusBadge" class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full"></span>
-            </div>
-            
-            <div class="grid grid-cols-2 gap-4 mb-8 text-sm">
-                <div>
-                    <p class="text-slate-400 text-xs font-semibold uppercase">Destination</p>
-                    <p id="resDestination" class="font-medium text-slate-800 mt-0.5"></p>
-                </div>
-                <div>
-                    <p class="text-slate-400 text-xs font-semibold uppercase">Recipient Name</p>
-                    <p id="resRecipient" class="font-medium text-slate-800 mt-0.5"></p>
+                <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Navigate Global Trade & Customs</h3>
+                        <p class="text-xs text-slate-500 mt-1">Stay informed on international trade updates, regulatory compliance, and seamless border clearances.</p>
+                    </div>
+                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-4">Stay Informed →</a>
                 </div>
             </div>
 
-            <h4 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Transit History Feed</h4>
-            <div id="timelineList" class="space-y-4 border-l-2 border-blue-600 pl-4 ml-2"></div>
+            <!-- Card 2 -->
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                <div class="h-48 bg-slate-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&w=800&q=80" alt="Courier delivery" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Joint Shipping Made Simple</h3>
+                        <p class="text-xs text-slate-500 mt-1">Recipients and shippers can coordinate pickups online effortlessly without phone calls or complex setup.</p>
+                    </div>
+                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-4">Schedule a Pickup →</a>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                <div class="h-48 bg-slate-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=800&q=80" alt="Business workspace" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">More Space to Grow. Less Time Shipping.</h3>
+                        <p class="text-xs text-slate-500 mt-1">Discover how to simplify logistics, scale across US state borders, and keep your enterprise moving forward.</p>
+                    </div>
+                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-4">Feel the Effect →</a>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col justify-between">
+                <div class="h-48 bg-slate-200 overflow-hidden">
+                    <img src="https://images.unsplash.com/photo-1542744094-24638eff58bb?auto=format&fit=crop&w=800&q=80" alt="Sustainability insights" class="w-full h-full object-cover">
+                </div>
+                <div class="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Understand Your Emissions Footprint</h3>
+                        <p class="text-xs text-slate-500 mt-1">Leverage sustainability insight tools to evaluate carbon output at account and package levels.</p>
+                    </div>
+                    <a href="auth.html" class="inline-block text-blue-600 font-bold text-xs uppercase tracking-wider hover:text-blue-700 mt-4">Explore More →</a>
+                </div>
+            </div>
         </div>
     </main>
 
+    <!-- Professional Footer -->
+    <footer class="bg-slate-900 text-slate-400 text-xs py-12 px-6 mt-16 border-t border-slate-800">
+        <div class="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+            <div class="space-y-3">
+                <h4 class="text-white font-bold uppercase tracking-wider">Our Company</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white transition">About GlobalTransit</a></li>
+                    <li><a href="#" class="hover:text-white transition">Careers</a></li>
+                    <li><a href="#" class="hover:text-white transition">Investor Relations</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="text-white font-bold uppercase tracking-wider">New Customer</h4>
+                <ul class="space-y-2">
+                    <li><a href="auth.html" class="hover:text-white transition">Open an Account</a></li>
+                    <li><a href="auth.html" class="hover:text-white transition">How to Ship</a></li>
+                    <li><a href="auth.html" class="hover:text-white transition">Shipping Tools</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="text-white font-bold uppercase tracking-wider">Resources</h4>
+                <ul class="space-y-2">
+                    <li><a href="#" class="hover:text-white transition">Locations & Hubs</a></li>
+                    <li><a href="#" class="hover:text-white transition">Fuel Surcharge</a></li>
+                    <li><a href="#" class="hover:text-white transition">Download Centre</a></li>
+                </ul>
+            </div>
+            <div class="space-y-3">
+                <h4 class="text-white font-bold uppercase tracking-wider">Language & Region</h4>
+                <a href="global.html" class="text-white font-medium hover:underline block">🌐 United States (English) — Change Region</a>
+            </div>
+        </div>
+        <div class="max-w-6xl mx-auto border-t border-slate-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p>© GlobalTransit 1995–2026. All rights reserved.</p>
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-white transition">Terms of Use</a>
+                <a href="#" class="hover:text-white transition">Privacy Security</a>
+                <a href="#" class="hover:text-white transition">Site Map</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Google Translate Widget Script Initialization -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,es,fr,de,zh-CN,ja,pt,ar',
+                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+            }, 'google_translate_element');
+        }
+    </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
     <script>
-        async function trackShipment() {
-            const trackingNumber = document.getElementById('trackInput').value.trim();
-            if (!trackingNumber) return alert('Please enter a tracking number.');
+        async function trackPackage() {
+            const trackingNum = document.getElementById('trackingInput').value.trim();
+            if (!trackingNum) {
+                alert('Please enter a valid tracking number.');
+                return;
+            }
 
             try {
-                const res = await fetch(`http://localhost:3000/api/shipments/${trackingNumber}`);
-                const data = await res.json();
+                const res = await fetch(`http://localhost:3000/api/shipments/${trackingNum}`);
+                const shipment = await res.json();
 
                 if (!res.ok) {
-                    alert(data.message || 'Shipment not found.');
-                    document.getElementById('resultContainer').classList.add('hidden');
+                    alert(shipment.message || 'Shipment not found.');
+                    document.getElementById('trackingResultContainer').classList.add('hidden');
                     return;
                 }
 
-                document.getElementById('resTrackingNum').innerText = data.tracking_number;
-                document.getElementById('resStatusBadge').innerText = data.status;
-                document.getElementById('resDestination').innerText = data.destination;
-                document.getElementById('resRecipient').innerText = data.recipient_name;
+                const eventsRes = await fetch(`http://localhost:3000/api/shipments/${trackingNum}/events`);
+                const events = await eventsRes.json();
 
-                // Fetch events timeline
-                const eventRes = await fetch(`http://localhost:3000/api/shipments/${trackingNumber}/events`);
-                const events = await eventRes.json();
+                document.getElementById('resTrackingNum').innerText = shipment.tracking_number;
+                document.getElementById('resDestination').innerText = `Destination: ${shipment.destination} (${shipment.recipient_name})`;
+                document.getElementById('resStatusBadge').innerText = shipment.status;
 
                 const timelineList = document.getElementById('timelineList');
                 timelineList.innerHTML = '';
@@ -88,17 +200,19 @@
                 events.forEach(ev => {
                     timelineList.innerHTML += `
                         <div class="relative pb-4">
-                            <div class="absolute -left-[21px] top-1 w-3 h-3 bg-blue-600 rounded-full border-2 border-white"></div>
-                            <p class="text-xs text-slate-400 font-medium">${new Date(ev.created_at).toLocaleString()}</p>
-                            <p class="text-sm font-bold text-slate-800 mt-0.5">${ev.status_description} — <span class="font-normal text-slate-600">${ev.location}</span></p>
+                            <div class="text-xs text-blue-600 font-bold">${new Date(ev.created_at).toLocaleString()}</div>
+                            <div class="text-sm font-bold text-slate-900 mt-0.5">${ev.status_description}</div>
+                            <div class="text-xs text-slate-500">Facility: ${ev.location}</div>
                         </div>
                     `;
                 });
 
-                document.getElementById('resultContainer').classList.remove('hidden');
+                document.getElementById('trackingResultContainer').classList.remove('hidden');
+                document.getElementById('trackingResultContainer').scrollIntoView({ behavior: 'smooth' });
+
             } catch (err) {
                 console.error(err);
-                alert('Error connecting to server.');
+                alert('Server connection error while tracking.');
             }
         }
     </script>
