@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTransit - Admin Control Center</title>
+    <title>GlobalTransit - Master Admin Control Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-900 font-sans antialiased text-slate-800 min-h-screen flex flex-col">
@@ -11,14 +11,14 @@
     <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center text-white">
         <div class="flex items-center space-x-2">
             <span class="text-xl font-black tracking-tight">Global<span class="text-blue-500">Transit</span></span>
-            <span class="bg-blue-600 text-xs px-2 py-0.5 rounded font-semibold">Admin Panel</span>
+            <span class="bg-blue-600 text-xs px-2 py-0.5 rounded font-semibold">Master Admin Panel</span>
         </div>
         <button onclick="logoutAdmin()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded transition">Sign Out</button>
     </header>
 
     <main class="flex-1 max-w-6xl w-full mx-auto p-4 sm:p-6 space-y-8">
 
-        <!-- Global Shipping Fee & Payment Configuration Section -->
+        <!-- 1. Platform Settings & Pricing -->
         <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
             <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700">Platform Settings & Pricing</h2>
             <form id="settingsForm" onsubmit="saveAdminSettings(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
@@ -39,20 +39,56 @@
                     <input type="text" id="cashapp" placeholder="$tag" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
                 <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Venmo Handle</label>
+                    <input type="text" id="venmo" placeholder="@handle" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
                     <label class="block font-semibold text-slate-500 mb-1">PayPal Email</label>
                     <input type="text" id="paypal" placeholder="email@domain.com" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
-                <div>
-                    <label class="block font-semibold text-slate-500 mb-1">Bank Wire Instructions</label>
-                    <input type="text" id="bankwire" placeholder="Bank name, account..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                <div class="md:col-span-2">
+                    <label class="block font-semibold text-slate-500 mb-1">Bank Wire Account & Routing</label>
+                    <input type="text" id="bankwire" placeholder="Bank name, account number..." class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
                 <div class="md:col-span-3 pt-2">
-                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm">Save All Settings</button>
+                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm">Save All Settings & Accounts</button>
                 </div>
             </form>
         </div>
 
-        <!-- Registered Users Section -->
+        <!-- 2. Transit Checkpoint Manager -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
+            <div>
+                <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700">Logistics Control & Checkpoints</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Post real-time transit checkpoints and scan history visible to users.</p>
+            </div>
+            <form id="checkpointForm" onsubmit="postCheckpoint(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Tracking Number</label>
+                    <input type="text" id="chkTrackingNum" required placeholder="E.G. GT-482910" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Facility / Location</label>
+                    <input type="text" id="chkLocation" required placeholder="Chicago Sorting Hub, IL" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-500 mb-1">Status Description</label>
+                    <select id="chkStatus" class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-600 outline-none">
+                        <option value="Processing at Origin Hub">Processing at Origin Hub</option>
+                        <option value="In Transit to Destination Country">In Transit to Destination Country</option>
+                        <option value="Arrived at Destination Facility">Arrived at Destination Facility</option>
+                        <option value="Out for Delivery">Out for Delivery</option>
+                        <option value="Delivered Successfully">Delivered Successfully</option>
+                        <option value="Payment Confirmed & Processing">Payment Confirmed & Processing</option>
+                    </select>
+                </div>
+                <div class="sm:col-span-3 pt-2">
+                    <button type="submit" class="bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg hover:bg-blue-700 transition shadow-sm">Post Checkpoint Scan</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 3. Registered Users Section -->
         <div class="bg-white rounded-2xl shadow-xl p-6 space-y-4">
             <h2 class="text-sm font-bold uppercase tracking-wider text-slate-700">Registered Users</h2>
             <div class="overflow-x-auto">
@@ -139,6 +175,31 @@
                     alert('Settings updated successfully!');
                 } else {
                     alert(data.message || 'Error saving settings.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error.');
+            }
+        }
+
+        async function postCheckpoint(e) {
+            e.preventDefault();
+            const trackingNumber = document.getElementById('chkTrackingNum').value.trim();
+            const location = document.getElementById('chkLocation').value.trim();
+            const status_description = document.getElementById('chkStatus').value;
+
+            try {
+                const res = await fetch(`/api/admin/shipments/${trackingNumber}/checkpoint`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ location, status_description })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Checkpoint scan posted successfully!');
+                    document.getElementById('checkpointForm').reset();
+                } else {
+                    alert(data.message || 'Error posting checkpoint.');
                 }
             } catch (err) {
                 console.error(err);

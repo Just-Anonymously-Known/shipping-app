@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const { Pool } = require('pg');
 const path = require('path');
@@ -215,6 +216,25 @@ app.get('/api/admin/users', async (req, res) => {
         res.json(users.rows);
     } catch (err) {
         res.status(500).json({ message: 'Error loading users.' });
+    }
+});
+
+app.post('/api/admin/shipments/:trackingNum/checkpoint', async (req, res) => {
+    const { trackingNum } = req.params;
+    const { location, status_description } = req.body;
+    try {
+        await pool.query(
+            'INSERT INTO shipment_events (tracking_number, status_description, location) VALUES ($1, $2, $3)',
+            [trackingNum, status_description, location]
+        );
+        await pool.query(
+            'UPDATE shipments SET status = $1 WHERE tracking_number = $2',
+            [status_description, trackingNum]
+        );
+        res.json({ success: true, message: 'Checkpoint added.' });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Error updating checkpoint.' });
     }
 });
 
