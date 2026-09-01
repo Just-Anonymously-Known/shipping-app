@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GlobalTransit - Global Logistics & Package Tracking</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Leaflet CSS for Interactive Map -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800 flex flex-col min-h-screen">
@@ -17,13 +16,39 @@
             <span id="geoBadge" class="text-[10px] bg-blue-600/30 border border-blue-500 text-blue-400 px-2 py-0.5 rounded-full font-semibold">Detecting Location...</span>
         </div>
         
-        <div id="google_translate_element" class="text-xs"></div>
+        <!-- Custom Sleek Language Selector -->
+        <div class="flex items-center space-x-3">
+            <div class="relative">
+                <select id="languageSelect" onchange="changeLanguage(this.value)" class="bg-slate-800 text-slate-200 text-xs font-semibold px-3 py-2 rounded-lg border border-slate-700 outline-none cursor-pointer hover:bg-slate-700 transition">
+                    <option value="en">🌐 English (Global)</option>
+                    <option value="es">🇪🇸 Español (Spanish)</option>
+                    <option value="fr">🇫🇷 Français (French)</option>
+                    <option value="de">🇩🇪 Deutsch (German)</option>
+                    <option value="zh-CN">🇨🇳 简体中文 (Chinese)</option>
+                    <option value="ja">🇯🇵 日本語 (Japanese)</option>
+                    <option value="pt">🇧🇷 Português (Portuguese)</option>
+                    <option value="ar">🇸🇦 العربية (Arabic)</option>
+                    <option value="yo">🇳🇬 Yorùbá (Yoruba)</option>
+                    <option value="ig">🇳🇬 Igbo (Igbo)</option>
+                    <option value="ha">🇳🇬 Hausa (Hausa)</option>
+                    <option value="sw">🇰🇪 Kiswahili (Swahili)</option>
+                    <option value="it">🇮🇹 Italiano (Italian)</option>
+                    <option value="nl">🇳🇱 Nederlands (Dutch)</option>
+                    <option value="ko">🇰🇷 한국어 (Korean)</option>
+                    <option value="hi">🇮🇳 हिन्दी (Hindi)</option>
+                    <option value="ru">🇷🇺 Русский (Russian)</option>
+                </select>
+            </div>
+        </div>
 
         <div class="flex items-center space-x-4 text-sm font-semibold">
             <a href="auth.html" class="text-slate-300 hover:text-white transition">Sign In</a>
             <a href="auth.html" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-sm">Book Shipment</a>
         </div>
     </header>
+
+    <!-- Hidden Google Translate Element for backend script execution -->
+    <div id="google_translate_element" class="hidden"></div>
 
     <!-- Hero / Tracking Section -->
     <section class="bg-slate-900 text-white py-16 px-6 text-center">
@@ -152,7 +177,7 @@
         </div>
     </footer>
 
-    <!-- Leaflet JS & Geolocation Scripts -->
+    <!-- Leaflet JS & Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         async function detectUserLocation() {
@@ -167,15 +192,13 @@
         detectUserLocation();
 
         function toggleSupportChat() {
-            const box = document.getElementById('supportChatBox');
-            box.classList.toggle('hidden');
+            document.getElementById('supportChatBox').classList.toggle('hidden');
         }
 
         function sendChatMessage() {
             const input = document.getElementById('chatInput');
             const msg = input.value.trim();
             if (!msg) return;
-
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML += `
                 <div class="bg-blue-50 p-3 rounded-xl border border-blue-100 text-right ml-6">
@@ -205,14 +228,14 @@
                 return;
             }
             try {
-                const res = await fetch(`http://localhost:3000/api/shipments/${trackingNum}`);
+                const res = await fetch(`/api/shipments/${trackingNum}`);
                 const shipment = await res.json();
                 if (!res.ok) {
                     alert(shipment.message || 'Shipment not found.');
                     document.getElementById('trackingResultContainer').classList.add('hidden');
                     return;
                 }
-                const eventsRes = await fetch(`http://localhost:3000/api/shipments/${trackingNum}/events`);
+                const eventsRes = await fetch(`/api/shipments/${trackingNum}/events`);
                 const events = await eventsRes.json();
 
                 document.getElementById('resTrackingNum').innerText = shipment.tracking_number;
@@ -234,7 +257,6 @@
                 document.getElementById('trackingResultContainer').classList.remove('hidden');
                 document.getElementById('trackingResultContainer').scrollIntoView({ behavior: 'smooth' });
 
-                // Render Map Preview
                 if (!map) {
                     map = L.map('map').setView([37.0902, -95.7129], 4);
                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -244,9 +266,8 @@
                     map.invalidateSize();
                 }
 
-                // Add Origin and Destination markers
-                const originCoords = [40.7128, -74.0060]; // New York Hub
-                const destCoords = [34.0522, -118.2437]; // Los Angeles / Generic US coordinate
+                const originCoords = [40.7128, -74.0060];
+                const destCoords = [34.0522, -118.2437];
                 L.marker(originCoords).addTo(map).bindPopup("US Origin Sorting Hub (New York)").openPopup();
                 L.marker(destCoords).addTo(map).bindPopup(`Destination: ${shipment.destination}`);
                 L.polyline([originCoords, destCoords], { color: '#2563eb', weight: 4 }).addTo(map);
@@ -258,13 +279,31 @@
         }
     </script>
 
+    <!-- Google Translate Script & Custom Bridge -->
     <script type="text/javascript">
         function googleTranslateElementInit() {
             new google.translate.TranslateElement({
                 pageLanguage: 'en',
-                includedLanguages: 'en,es,fr,de,zh-CN,ja,pt,ar',
-                layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+                includedLanguages: 'en,es,fr,de,zh-CN,ja,pt,ar,yo,ig,ha,sw,it,nl,ko,hi,ru',
+                autoDisplay: false
             }, 'google_translate_element');
+        }
+
+        function changeLanguage(langCode) {
+            const selectField = document.querySelector('.goog-te-combo');
+            if (selectField) {
+                selectField.value = langCode;
+                selectField.dispatchEvent(new Event('change'));
+            } else {
+                // Retry if widget takes a second to load
+                setTimeout(() => {
+                    const retryField = document.querySelector('.goog-te-combo');
+                    if (retryField) {
+                        retryField.value = langCode;
+                        retryField.dispatchEvent(new Event('change'));
+                    }
+                }, 1000);
+            }
         }
     </script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
