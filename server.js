@@ -1,22 +1,60 @@
 const express = require('express');
 const { Pool } = require('pg');
-const cors = require('cors');
+const path = require('path');
 const nodemailer = require('nodemailer');
-require('dotenv').config();
 
 const app = express();
-app.use(cors());
 app.use(express.json());
-app.use(express.static('.'));
-
-app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
-});
+app.use(express.static(path.join(__dirname)));
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false }
 });
+
+const initDb = async () => {
+    try {
+        // Create tables without strict foreign key constraints on startup to prevent boot crashes
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                is_admin BOOLEAN DEFAULT FALSE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS shipments (
+                id SERIAL PRIMARY KEY,
+                tracking_number VARCHAR(50) UNIQUE NOT NULL,
+                sender_name VARCHAR(255) NOT NULL,
+                recipient_name VARCHAR(255) NOT NULL,
+                recipient_email VARCHAR(255) NOT NULL,
+                recipient_phone VARCHAR(255) NOT NULL,
+                destination TEXT NOT NULL,
+                payment_method VARCHAR(100) NOT NULL,
+                amount DECIMAL(10,2) NOT NULL,
+                status VARCHAR(100) DEFAULT 'Processing at Origin Hub',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS shipment_events (
+                id SERIAL PRIMARY KEY,
+                tracking_number VARCHAR(50) NOT NULL,
+                status_description TEXT NOT NULL,
+                location VARCHAR(255) NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS admin_settings (
+                key VARCHAR(100) PRIMARY KEY,
+                value TEXT
+            );
+        `);
+        console.log('Database tables verified/initialized.');
+    } catch (err) {
+        console.error('Error initializing tables:', err);
+    }
+};
+initDb();
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -26,183 +64,125 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// User Registration Route
-app.post('/api/register', async (req, res) => {
-    const { name, email, phone, password } = req.body;
+app.post('/api/signup', async (req, res) => {
+    const { name, email, password } = req.body;
     try {
-        const existing = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (existing.rows.length > 0) {
-            return res.status(400).json({ message: 'Email already exists' });
+        const userCheck = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+        if (userCheck.rows.length > 0) {
+            return res.status(400).json({ message: 'Email already registered.' });
         }
-        await pool.query(
-            'INSERT INTO users (name, email, phone, password_hash) VALUES ($1, $2, $3, $4)',
-            [name, email, phone, password]
+        const newUser = await pool.query(
+            'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id, name, email, is_admin',
+            [name, email, password]
         );
-        res.status(201).json({ message: 'Account created successfully' });
+        res.status(201).json(newUser.rows[0]);
     } catch (err) {
-        console.error('Registration error:', err);
-        res.status(500).json({ message: 'Server error during registration' });
+        console.error(err);
+        res.status(500).json({ message: 'Server error during registration.' });
     }
 });
 
-// Login Route
-app.post('/api/login', async (req, res) => {
+app.post('/api/signin', async (req, res) => {
     const { email, password } = req.body;
-
-    if (email === 'Admin' && password === 'Admin@55') {
-        return res.json({ 
-            message: 'Login successful', 
-            name: 'System Administrator', 
-            email: 'admin@globaltransit.com', 
-            isAdmin: true 
-        });
-    }
-
     try {
-        const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-        if (result.rows.length === 0) {
-            return res.status(400).json({ message: 'Invalid email or password' });
+        const user = await pool.query('SELECT * FROM users WHERE email = $1 AND password = $2', [email, password]);
+        if (user.rows.length === 0) {
+            return res.status(400).json({ message: 'Invalid email or password.' });
         }
-        const user = result.rows[0];
-        if (password !== user.password_hash) {
-            return res.status(400).json({ message: 'Invalid email or password' });
-        }
-        res.json({ message: 'Login successful', name: user.name, email: user.email, phone: user.phone, isAdmin: false });
+        res.json(user.rows[0]);
     } catch (err) {
-        console.error('Login error:', err);
-        res.status(500).json({ message: 'Server error during login' });
+        console.error(err);
+        res.status(500).json({ message: 'Server error during signin.' });
     }
 });
 
-// Create Shipment with Payment Method selection
 app.post('/api/shipments', async (req, res) => {
     const { senderName, recipientName, recipientEmail, recipientPhone, destination, paymentMethod, amount } = req.body;
-    
     const trackingNumber = 'GT-' + Math.floor(100000 + Math.random() * 900000);
-    const status = 'Awaiting Payment / Order Placed';
-
     try {
         await pool.query(
-            'INSERT INTO shipments (tracking_number, sender_name, recipient_name, recipient_phone, destination, status) VALUES ($1, $2, $3, $4, $5, $6)',
-            [trackingNumber, senderName, recipientName, recipientPhone, destination, status]
+            'INSERT INTO shipments (tracking_number, sender_name, recipient_name, recipient_email, recipient_phone, destination, payment_method, amount) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
+            [trackingNumber, senderName, recipientName, recipientEmail, recipientPhone, destination, paymentMethod, amount]
         );
-
         await pool.query(
-            'INSERT INTO shipment_events (tracking_number, location, status_description) VALUES ($1, $2, $3)',
-            [trackingNumber, 'US Origin Sorting Hub (New York)', `Order Booked via ${paymentMethod || 'Card'} ($${amount || '0.00'})`]
+            'INSERT INTO shipment_events (tracking_number, status_description, location) VALUES ($1, $2, $3)',
+            [trackingNumber, 'Shipment booked and verified', 'US Origin Sorting Facility']
         );
-
-        if (recipientEmail) {
-            const mailOptions = {
+        
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            transporter.sendMail({
                 from: process.env.EMAIL_USER,
                 to: recipientEmail,
-                subject: `Your GlobalTransit Shipment & Invoice! (${trackingNumber})`,
-                text: `Hello ${recipientName},\n\nYour shipment has been booked with GlobalTransit.\n\nTracking Number: ${trackingNumber}\nDestination: ${destination}\nPayment Method Selected: ${paymentMethod}\nAmount Due: $${amount || '150.00'}\n\nPlease complete your payment to dispatch your package!`
-            };
-            transporter.sendMail(mailOptions, (error) => {
-                if (error) console.error('Email error:', error);
-            });
+                subject: `GlobalTransit Shipment Booked - ${trackingNumber}`,
+                text: `Hello ${recipientName},\n\nYour shipment to ${destination} has been successfully booked.\nTracking Number: ${trackingNumber}\n\nTrack your package live on our platform!`
+            }).catch(mailErr => console.log('Mail send error:', mailErr));
         }
 
-        res.status(201).json({ message: 'Shipment created successfully', trackingNumber });
+        res.status(201).json({ success: true, trackingNumber });
     } catch (err) {
-        console.error('Shipment creation error:', err);
-        res.status(500).json({ message: 'Server error while creating shipment' });
+        console.error(err);
+        res.status(500).json({ message: 'Error creating shipment.' });
     }
 });
 
-// Get User Shipment History
-app.get('/api/shipments/user/:senderName', async (req, res) => {
-    const { senderName } = req.params;
+app.get('/api/shipments/user/:name', async (req, res) => {
     try {
-        const result = await pool.query(
-            'SELECT * FROM shipments WHERE sender_name = $1 ORDER BY created_at DESC',
-            [senderName]
-        );
-        res.json(result.rows);
+        const shipments = await pool.query('SELECT * FROM shipments WHERE sender_name = $1 ORDER BY id DESC', [req.params.name]);
+        res.json(shipments.rows);
     } catch (err) {
-        console.error('Fetch user shipments error:', err);
-        res.status(500).json({ message: 'Server error while fetching user shipments' });
+        res.status(500).json({ message: 'Error loading user shipments.' });
     }
 });
 
-// Track Shipment
-app.get('/api/shipments/:trackingNumber', async (req, res) => {
-    const { trackingNumber } = req.params;
+app.get('/api/shipments/:trackingNum', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM shipments WHERE tracking_number = $1', [trackingNumber]);
-        if (result.rows.length === 0) {
-            return res.status(404).json({ message: 'Shipment not found' });
+        const shipment = await pool.query('SELECT * FROM shipments WHERE tracking_number = $1', [req.params.trackingNum]);
+        if (shipment.rows.length === 0) {
+            return res.status(404).json({ message: 'Shipment not found.' });
         }
-        res.json(result.rows[0]);
+        res.json(shipment.rows[0]);
     } catch (err) {
-        console.error('Tracking error:', err);
-        res.status(500).json({ message: 'Server error while tracking' });
+        res.status(500).json({ message: 'Error tracking package.' });
     }
 });
 
-// Add Checkpoint Event
-app.post('/api/shipments/:trackingNumber/events', async (req, res) => {
-    const { trackingNumber } = req.params;
-    const { location, statusDescription } = req.body;
-
+app.get('/api/shipments/:trackingNum/events', async (req, res) => {
     try {
-        await pool.query(
-            'INSERT INTO shipment_events (tracking_number, location, status_description) VALUES ($1, $2, $3)',
-            [trackingNumber, location, statusDescription]
-        );
-        await pool.query(
-            'UPDATE shipments SET status = $1 WHERE tracking_number = $2',
-            [statusDescription, trackingNumber]
-        );
-        res.status(201).json({ message: 'Checkpoint added successfully' });
+        const events = await pool.query('SELECT * FROM shipment_events WHERE tracking_number = $1 ORDER BY id ASC', [req.params.trackingNum]);
+        res.json(events.rows);
     } catch (err) {
-        console.error('Event creation error:', err);
-        res.status(500).json({ message: 'Server error while adding checkpoint' });
+        res.status(500).json({ message: 'Error loading events.' });
     }
 });
 
-app.get('/api/shipments/:trackingNumber/events', async (req, res) => {
-    const { trackingNumber } = req.params;
-    try {
-        const result = await pool.query(
-            'SELECT * FROM shipment_events WHERE tracking_number = $1 ORDER BY created_at DESC',
-            [trackingNumber]
-        );
-        res.json(result.rows);
-    } catch (err) {
-        console.error('Fetch events error:', err);
-        res.status(500).json({ message: 'Server error while fetching history' });
-    }
-});
-
-// --- ADMIN PAYMENT SETTINGS ENDPOINTS ---
 app.get('/api/admin/payment-settings', async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM payment_settings LIMIT 1');
-        if (result.rows.length === 0) {
-            return res.json({ bitcoin: 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh', zelle: 'payments@globaltransit.com', cashapp: '$GlobalTransitUS', venmo: '@GlobalTransit', paypal: 'pay@globaltransit.com', bankwire: 'Chase Bank #9988223311' });
-        }
-        res.json(result.rows[0]);
+        const settings = await pool.query('SELECT * FROM admin_settings');
+        const settingsObj = {};
+        settings.rows.forEach(row => settingsObj[row.key] = row.value);
+        res.json(settingsObj);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching payment settings' });
+        res.json({});
     }
 });
 
 app.post('/api/admin/payment-settings', async (req, res) => {
     const { bitcoin, zelle, cashapp, venmo, paypal, bankwire } = req.body;
     try {
-        await pool.query('DELETE FROM payment_settings');
-        await pool.query(
-            'INSERT INTO payment_settings (bitcoin, zelle, cashapp, venmo, paypal, bankwire) VALUES ($1, $2, $3, $4, $5, $6)',
-            [bitcoin, zelle, cashapp, venmo, paypal, bankwire]
-        );
-        res.json({ message: 'Payment settings updated successfully' });
+        const entries = Object.entries({ bitcoin, zelle, cashapp, venmo, paypal, bankwire });
+        for (let [key, value] of entries) {
+            await pool.query(
+                'INSERT INTO admin_settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = $2',
+                [key, value]
+            );
+        }
+        res.json({ success: true, message: 'Payment settings updated.' });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: 'Error updating payment settings' });
+        res.status(500).json({ message: 'Error saving settings.' });
     }
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`GlobalTransit server running on port ${PORT}`);
+});
