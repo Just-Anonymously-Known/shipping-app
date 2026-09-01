@@ -2,140 +2,138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlobalTransit - Authentication</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GlobalTransit - Sign In & Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50 font-sans antialiased text-slate-800 flex flex-col min-h-screen">
+<body class="bg-slate-900 font-sans antialiased text-slate-800 flex flex-col min-h-screen justify-center items-center px-4">
 
-    <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center">
-        <span class="text-xl font-bold tracking-tight">Global<span class="text-blue-500">Transit</span></span>
-        <a href="index.html" class="text-sm text-slate-300 hover:text-white">Back to Home</a>
-    </header>
-
-    <main class="flex-1 flex items-center justify-center px-4 py-12">
-        <div class="max-w-md w-full bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
-            
-            <div class="flex border-b border-slate-100 mb-6 pb-2">
-                <button onclick="switchTab('login')" id="loginTab" class="flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600">Sign In</button>
-                <button onclick="switchTab('register')" id="registerTab" class="flex-1 pb-2 text-sm font-semibold text-slate-400">Register</button>
-            </div>
-
-            <!-- Login Form -->
-            <form id="loginForm" class="space-y-4" onsubmit="handleLogin(event)">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address or Username</label>
-                    <input type="text" id="loginEmail" required placeholder="name@example.com or Admin" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
-                    <input type="password" id="loginPassword" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                </div>
-                
-                <div class="flex items-center space-x-2 pt-1">
-                    <input type="checkbox" id="showLoginPass" onclick="togglePassword('loginPassword', this.id)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                    <label for="showLoginPass" class="text-xs text-slate-600 cursor-pointer select-none">Show password</label>
-                </div>
-
-                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-2">Sign In</button>
-            </form>
-
-            <!-- Register Form -->
-            <form id="registerForm" class="space-y-4 hidden" onsubmit="handleRegister(event)">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Full Name</label>
-                    <input type="text" id="regName" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
-                    <input type="email" id="regEmail" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Phone Number (US)</label>
-                    <input type="text" id="regPhone" required placeholder="+1 (555) 234-5678" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
-                    <input type="password" id="regPassword" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
-                </div>
-
-                <div class="flex items-center space-x-2 pt-1">
-                    <input type="checkbox" id="showRegPass" onclick="togglePassword('regPassword', this.id)" class="rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                    <label for="showRegPass" class="text-xs text-slate-600 cursor-pointer select-none">Show password</label>
-                </div>
-
-                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-sm shadow-sm mt-2">Create Account</button>
-            </form>
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6">
+        <div class="text-center space-y-1">
+            <span class="text-2xl font-black tracking-tight text-slate-900">Global<span class="text-blue-600">Transit</span></span>
+            <p id="formSubtitle" class="text-xs text-slate-500">Sign in to your account or book a shipment</p>
         </div>
-    </main>
+
+        <!-- Toggle Tabs -->
+        <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-semibold">
+            <button onclick="switchTab('signin')" id="tabSignin" class="flex-1 py-2 rounded-lg bg-white text-slate-900 shadow-sm transition">Sign In</button>
+            <button onclick="switchTab('signup')" id="tabSignup" class="flex-1 py-2 rounded-lg text-slate-500 transition">Register</button>
+        </div>
+
+        <!-- Sign In Form -->
+        <form id="signinForm" onsubmit="handleSignin(event)" class="space-y-4">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
+                <input type="email" id="signinEmail" required placeholder="name@example.com" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
+                <input type="password" id="signinPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm shadow-sm">Sign In</button>
+        </form>
+
+        <!-- Register Form (Hidden by default) -->
+        <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Full Name / Company</label>
+                <input type="text" id="signupName" required placeholder="John Doe" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
+                <input type="email" id="signupEmail" required placeholder="name@example.com" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
+                <input type="password" id="signupPassword" required placeholder="••••••••" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-xs sm:text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+            </div>
+            <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm shadow-sm">Create Account</button>
+        </form>
+
+        <div class="text-center pt-2">
+            <a href="index.html" class="text-xs text-slate-400 hover:text-slate-600 transition">← Back to Tracking Home</a>
+        </div>
+    </div>
 
     <script>
         function switchTab(tab) {
-            if (tab === 'login') {
-                document.getElementById('loginForm').classList.remove('hidden');
-                document.getElementById('registerForm').classList.add('hidden');
-                document.getElementById('loginTab').className = "flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600";
-                document.getElementById('registerTab').className = "flex-1 pb-2 text-sm font-semibold text-slate-400";
+            const signinForm = document.getElementById('signinForm');
+            const signupForm = document.getElementById('signupForm');
+            const tabSignin = document.getElementById('tabSignin');
+            const tabSignup = document.getElementById('tabSignup');
+            const subtitle = document.getElementById('formSubtitle');
+
+            if (tab === 'signin') {
+                signinForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+                tabSignin.className = "flex-1 py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
+                tabSignup.className = "flex-1 py-2 rounded-lg text-slate-500 transition";
+                subtitle.innerText = "Sign in to your account or book a shipment";
             } else {
-                document.getElementById('registerForm').classList.remove('hidden');
-                document.getElementById('loginForm').classList.add('hidden');
-                document.getElementById('registerTab').className = "flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600";
-                document.getElementById('loginTab').className = "flex-1 pb-2 text-sm font-semibold text-slate-400";
+                signupForm.classList.remove('hidden');
+                signinForm.classList.add('hidden');
+                tabSignup.className = "flex-1 py-2 rounded-lg bg-white text-slate-900 shadow-sm transition";
+                tabSignin.className = "flex-1 py-2 rounded-lg text-slate-500 transition";
+                subtitle.innerText = "Register a new shipping account";
             }
         }
 
-        function togglePassword(fieldId, checkboxId) {
-            const passwordField = document.getElementById(fieldId);
-            const isChecked = document.getElementById(checkboxId).checked;
-            passwordField.type = isChecked ? 'text' : 'password';
-        }
-
-        async function handleLogin(e) {
+        async function handleSignin(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value.trim();
-            const password = document.getElementById('loginPassword').value;
+            const email = document.getElementById('signinEmail').value.trim();
+            const password = document.getElementById('signinPassword').value.trim();
 
-            const res = await fetch('http://localhost:3000/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email, password })
-            });
-            const data = await res.json();
-            
-            if (res.ok) {
-                localStorage.setItem('userName', data.name);
-                localStorage.setItem('userEmail', data.email);
-                
-                if (data.isAdmin) {
-                    localStorage.setItem('isAdmin', 'true');
-                    window.location.href = 'admin.html';
+            // Hardcoded Admin Quick Access Check
+            if (email.toLowerCase() === 'admin' && password === 'Admin@55') {
+                localStorage.setItem('userName', 'Administrator');
+                localStorage.setItem('isAdmin', 'true');
+                window.location.href = 'admin.html';
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/signin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('userName', data.name);
+                    localStorage.setItem('isAdmin', data.is_admin ? 'true' : 'false');
+                    window.location.href = data.is_admin ? 'admin.html' : 'dashboard.html';
                 } else {
-                    localStorage.removeItem('isAdmin');
-                    window.location.href = 'dashboard.html';
+                    alert(data.message || 'Invalid login credentials.');
                 }
-            } else {
-                alert(data.message);
+            } catch (err) {
+                console.error(err);
+                alert('Connection error. Please try again.');
             }
         }
 
-        async function handleRegister(e) {
+        async function handleSignup(e) {
             e.preventDefault();
-            const name = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const phone = document.getElementById('regPhone').value;
-            const password = document.getElementById('regPassword').value;
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value.trim();
 
-            const res = await fetch('http://localhost:3000/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, phone, password })
-            });
-            const data = await res.json();
-            if (res.ok) {
-                alert('Registration successful! Please sign in.');
-                switchTab('login');
-            } else {
-                alert(data.message);
+            try {
+                const res = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    alert('Account created successfully! Please sign in.');
+                    switchTab('signin');
+                    document.getElementById('signupForm').reset();
+                } else {
+                    alert(data.message || 'Registration failed.');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error. Please try again.');
             }
         }
     </script>
