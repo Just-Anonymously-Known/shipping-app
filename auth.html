@@ -16,7 +16,6 @@
     <main class="flex-1 flex items-center justify-center px-4 py-12">
         <div class="max-w-md w-full bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
             
-            <!-- Toggle Tabs -->
             <div class="flex border-b border-slate-100 mb-6 pb-2">
                 <button onclick="switchTab('login')" id="loginTab" class="flex-1 pb-2 text-sm font-bold text-blue-600 border-b-2 border-blue-600">Sign In</button>
                 <button onclick="switchTab('register')" id="registerTab" class="flex-1 pb-2 text-sm font-semibold text-slate-400">Register</button>
@@ -25,8 +24,8 @@
             <!-- Login Form -->
             <form id="loginForm" class="space-y-4" onsubmit="handleLogin(event)">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address</label>
-                    <input type="email" id="loginEmail" required class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Email Address or Username</label>
+                    <input type="text" id="loginEmail" required placeholder="name@example.com or Admin" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
@@ -46,8 +45,8 @@
                     <input type="email" id="regEmail" required class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Phone Number (with country code)</label>
-                    <input type="text" id="regPhone" required placeholder="+2348012345678" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                    <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Phone Number (US)</label>
+                    <input type="text" id="regPhone" required placeholder="+1 (555) 234-5678" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Password</label>
@@ -75,7 +74,7 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            const email = document.getElementById('loginEmail').value;
+            const email = document.getElementById('loginEmail').value.trim();
             const password = document.getElementById('loginPassword').value;
 
             const res = await fetch('http://localhost:3000/api/login', {
@@ -84,10 +83,19 @@
                 body: JSON.stringify({ email, password })
             });
             const data = await res.json();
+            
             if (res.ok) {
                 localStorage.setItem('userName', data.name);
                 localStorage.setItem('userEmail', data.email);
-                window.location.href = 'dashboard.html';
+                
+                // If admin credentials match, route directly to admin portal
+                if (data.isAdmin) {
+                    localStorage.setItem('isAdmin', 'true');
+                    window.location.href = 'admin.html';
+                } else {
+                    localStorage.removeItem('isAdmin');
+                    window.location.href = 'dashboard.html';
+                }
             } else {
                 alert(data.message);
             }

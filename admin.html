@@ -11,23 +11,23 @@
     <header class="bg-slate-900 text-white px-8 py-4 flex justify-between items-center">
         <div class="flex items-center space-x-2">
             <span class="text-xl font-bold tracking-tight">Global<span class="text-blue-500">Transit</span></span>
-            <span class="text-xs bg-blue-600 text-white font-semibold px-2 py-0.5 rounded-full">Admin Control</span>
+            <span class="text-xs bg-blue-600 text-white font-semibold px-2 py-0.5 rounded-full">Admin Control Center</span>
         </div>
         <div class="flex items-center space-x-6 text-sm font-medium text-slate-300">
             <a href="index.html" class="hover:text-white">Public Site</a>
-            <a href="dashboard.html" class="hover:text-white">User Dashboard</a>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300">Sign Out</button>
         </div>
     </header>
 
     <main class="max-w-4xl mx-auto px-6 py-12">
         <div class="mb-8">
             <h1 class="text-2xl font-bold text-slate-900">Logistics Control Center</h1>
-            <p class="text-slate-500 text-sm mt-1">Post real-time transit checkpoints and update parcel scans. Triggers live global SMS alerts.</p>
+            <p class="text-slate-500 text-sm mt-1">Post real-time transit checkpoints and update US parcel scan locations.</p>
         </div>
 
         <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
             <h3 class="text-lg font-bold text-slate-900 mb-1">Add New Transit Checkpoint</h3>
-            <p class="text-xs text-slate-400 mb-6">This will update the public timeline feed and broadcast notifications.</p>
+            <p class="text-xs text-slate-400 mb-6">This will instantly update the public timeline feed.</p>
 
             <form id="checkpointForm" class="space-y-5">
                 <div>
@@ -37,8 +37,8 @@
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Current Location / Facility</label>
-                        <input type="text" id="adminLocation" required placeholder="e.g. Abuja Sorting Hub, Nigeria" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Current Facility / Location</label>
+                        <input type="text" id="adminLocation" required placeholder="e.g. Chicago Sorting Hub, IL" class="w-full px-4 py-2.5 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 outline-none">
                     </div>
                     <div>
                         <label class="block text-xs font-semibold text-slate-500 uppercase mb-1">Status Description</label>
@@ -58,6 +58,17 @@
     </main>
 
     <script>
+        // Enforce hidden admin portal protection
+        if (localStorage.getItem('isAdmin') !== 'true') {
+            alert('Unauthorized access. Please sign in with administrator credentials.');
+            window.location.href = 'auth.html';
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'auth.html';
+        }
+
         document.getElementById('checkpointForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const trackingNumber = document.getElementById('adminTrackingNum').value.trim();
@@ -74,7 +85,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(`Checkpoint successfully posted for ${trackingNumber}!\nSMS alert dispatched to recipient.`);
+                    alert(`Checkpoint successfully posted for ${trackingNumber}!`);
                     document.getElementById('checkpointForm').reset();
                 } else {
                     alert(data.message || 'Failed to post checkpoint.');

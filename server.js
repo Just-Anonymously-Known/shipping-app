@@ -45,9 +45,20 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login Route
+// Login Route (Supports both regular users and hardcoded Admin credentials)
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
+
+    // Check for hardcoded Admin credentials
+    if (email === 'Admin' && password === 'Admin@55') {
+        return res.json({ 
+            message: 'Login successful', 
+            name: 'System Administrator', 
+            email: 'admin@globaltransit.com', 
+            isAdmin: true 
+        });
+    }
+
     try {
         const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (result.rows.length === 0) {
@@ -57,14 +68,14 @@ app.post('/api/login', async (req, res) => {
         if (password !== user.password_hash) {
             return res.status(400).json({ message: 'Invalid email or password' });
         }
-        res.json({ message: 'Login successful', name: user.name, email: user.email, phone: user.phone });
+        res.json({ message: 'Login successful', name: user.name, email: user.email, phone: user.phone, isAdmin: false });
     } catch (err) {
         console.error('Login error:', err);
         res.status(500).json({ message: 'Server error during login' });
     }
 });
 
-// Generate Tracking & Create Shipment Route (Sends Email Notification)
+// Generate Tracking & Create Shipment Route
 app.post('/api/shipments', async (req, res) => {
     const { senderName, recipientName, recipientEmail, recipientPhone, destination } = req.body;
     
@@ -79,7 +90,7 @@ app.post('/api/shipments', async (req, res) => {
 
         await pool.query(
             'INSERT INTO shipment_events (tracking_number, location, status_description) VALUES ($1, $2, $3)',
-            [trackingNumber, 'Origin Hub', 'Order Placed & Processed']
+            [trackingNumber, 'US Origin Sorting Hub (New York)', 'Order Placed & Processed']
         );
 
         // Send Email Notification via Gmail
@@ -99,6 +110,21 @@ app.post('/api/shipments', async (req, res) => {
     } catch (err) {
         console.error('Shipment creation error:', err);
         res.status(500).json({ message: 'Server error while creating shipment' });
+    }
+});
+
+// Get User's Booked Shipments History
+app.get('/api/shipments/user/:senderName', async (req, res) => {
+    const { senderName } = req.params;
+    try {
+        const result = await pool.query(
+            'SELECT * FROM shipments WHERE sender_name = $1 ORDER BY created_at DESC',
+            [senderName]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Fetch user shipments error:', err);
+        res.status(500).json({ message: 'Server error while fetching user shipments' });
     }
 });
 
